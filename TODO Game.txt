@@ -2,8 +2,8 @@ Priority List:
 
 1. Grid skripte erstellen - done
 1.5 GIT aufsetzen (mit LFS) - done
-2. Moving system with units
-3. Units angreifen (mit Stats)
+2. Moving system with units (Erstmal A* dann "laufen" über Grid)
+3. Units erstellen + angreiflogik (mit Stats)
 3.5. basic unit typen
 4. Experience System/Level System
 5. Skills/Traits
@@ -16,3 +16,4 @@ Current TODO:
 
 - If wanting to display things on Grid -> work on maybe using CodeMonkey utils for visualizing and then finish event in GameGrid class
 - Pathfinding fertig implementieren
+- Binary Tree für Pathfinding optimierung fertig implementieren (sonst wies aussieht sehr lahm, aber potentiell verwendbar erstmal)
