@@ -5,12 +5,12 @@ using UnityEngine;
 public class PathNode
 {
     private GameGrid<PathNode> grid;
-    private int x;
-    private int y;
+    public int x;
+    public int y;
 
-    private int gCost;
-    private int hCost;
-    private int fCost;
+    public int gCost;
+    public int hCost;
+    public int fCost;
 
     public PathNode cameFromNode;
 
@@ -20,6 +20,11 @@ public class PathNode
         this.x = x;
         this.y = y;
 
+    }
+
+    public void CalculateFCost()
+    {
+        fCost = gCost + hCost;
     }
 
     public override string ToString()
