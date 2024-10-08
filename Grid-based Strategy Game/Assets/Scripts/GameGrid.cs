@@ -17,7 +17,7 @@ public class GameGrid<TGridObject>
         public int x;
         public int y;
     }
-    public GameGrid(int width, int height, float cellSize, Vector3 originPosition, Func<TGridObject> createGridObject)
+    public GameGrid(int width, int height, float cellSize, Vector3 originPosition, Func<GameGrid<TGridObject>, int, int, TGridObject> createGridObject)
     {
         this.width = width;
         this.height = height;
@@ -30,7 +30,7 @@ public class GameGrid<TGridObject>
         {
             for (int y = 0; y < height; y++)
             {
-                gridArray[x, y] = createGridObject();
+                gridArray[x, y] = createGridObject(this, x, y);
                 Debug.DrawLine(GetWorldPosition(x, y), GetWorldPosition(x + 1, y), Color.white, 100f);
                 Debug.DrawLine(GetWorldPosition(x, y), GetWorldPosition(x, y + 1), Color.white, 100f);
             }
