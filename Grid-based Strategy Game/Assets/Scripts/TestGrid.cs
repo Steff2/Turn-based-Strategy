@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics.Tracing;
+using Unity.Burst.CompilerServices;
 using UnityEngine;
 using Utils;
 
@@ -13,7 +14,7 @@ public class TestGrid : MonoBehaviour
 
     public void Start()
     {
-        grid = new GameGrid<bool>(5, 3, 4f, Vector3.zero, () => false);
+        grid = new GameGrid<bool>(5, 3, 4f, Vector3.zero, (GameGrid<bool> g, int x, int y) => new bool());
         gridSizeVector = grid.GetWorldPosition(grid.GetWidth(), grid.GetHeight());
 
         var camera = Camera.main;
