@@ -4,6 +4,6 @@ using UnityEngine;
 
 public interface IMoveable
 {
-    public void Move(int velocity);
+    public void SetMovePosition(Vector3 movePosition);
 }
 
