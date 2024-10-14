@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -12,6 +13,7 @@ public class PathNode
     public int hCost;
     public int fCost;
 
+    public Boolean isWalkable = true;
     public PathNode cameFromNode;
 
     public PathNode(GameGrid<PathNode> grid, int x, int y)
@@ -25,6 +27,11 @@ public class PathNode
     public void CalculateFCost()
     {
         fCost = gCost + hCost;
+    }
+
+    public void SetIsWalkable(bool isWalkable)
+    {
+        this.isWalkable = isWalkable;
     }
 
     public override string ToString()
