@@ -392,6 +392,7 @@
 "Assets/Scripts/Abstracts&Interfaces/BasicUnit.cs"
 "Assets/Scripts/Abstracts&Interfaces/IMoveable.cs"
 "Assets/Scripts/Abstracts&Interfaces/Targetable.cs"
+"Assets/Scripts/CharacterMovementHandler.cs"
 "Assets/Scripts/DataStructures/BinaryTree.cs"
 "Assets/Scripts/DataStructures/PathNode.cs"
 "Assets/Scripts/DataStructures/TreeNode.cs"
