@@ -1,7 +1,7 @@
 
 using System;
 
-public class BinaryTree : IDisposable
+public class BinaryTree
 {
     public TreeNode Search(TreeNode root, int value)
     {
@@ -47,5 +47,4 @@ public class BinaryTree : IDisposable
         return root;
     }
 
-    public void Dispose() { }
 }

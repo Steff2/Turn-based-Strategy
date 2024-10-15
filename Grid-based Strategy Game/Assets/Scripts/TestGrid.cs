@@ -27,12 +27,12 @@ public class TestGrid : MonoBehaviour
     {
         if(Input.GetMouseButtonDown(0))
         {
-            grid.SetGridObject(Utils.GameUtils.GetMouseWorldPosition(), counter);
+            grid.SetGridObject(GameUtils.GetMouseWorldPosition(), counter);
         }
         
         if(Input.GetMouseButtonDown(1))
         {
-            Debug.Log(grid.GetGridObject(Utils.GameUtils.GetMouseWorldPosition()));
+            Debug.Log(grid.GetGridObject(GameUtils.GetMouseWorldPosition()));
         }
     }
 }
