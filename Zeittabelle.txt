@@ -1,2 +1,3 @@
 2h - Einlesen in Pathfinding (auch für DOTS) und Optimierungen, bauen des frameworks für Units (abstracts, interfaces)
 2.5h - Sprite Movement
+1.5h - HealthSystem
