@@ -4,8 +4,9 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using Utils.HealthSystemCM;
 
-public class TestUnitMovement : MonoBehaviour
+public class TestUnitMovement : MonoBehaviour, IGetHealthSystem
 {
     [SerializeField] private CharacterMovementHandler characterPathfinding;
     private Pathfinding pathfinding;
@@ -13,11 +14,18 @@ public class TestUnitMovement : MonoBehaviour
 
     private static float speed = 5;
 
+    private HealthSystem healthSystem;
+
+    private void Awake()
+    {
+        healthSystem = new HealthSystem(100);
+        pathfinding = new Pathfinding(20, 10);
+    }
+
     // Start is called before the first frame update
     private void Start()
     {
 
-        pathfinding = new Pathfinding(20, 10);
         grid = pathfinding.GetGrid();
 
         var gridSizeVector = grid.GetWorldPosition(grid.GetWidth(), grid.GetHeight());
@@ -34,7 +42,7 @@ public class TestUnitMovement : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             Vector3 mouseWorldPosition = UtilsClass.GetMouseWorldPosition();
-            pathfinding.GetGrid().GetXY(characterPathfinding.transform.position, out int startX, out int startY);
+            pathfinding.GetGrid().GetXY(transform.position, out int startX, out int startY);
             pathfinding.GetGrid().GetXY(mouseWorldPosition, out int endX, out int endY);
 
             if (!pathfinding.GetNode(endX, endY).isWalkable) return;
@@ -55,5 +63,15 @@ public class TestUnitMovement : MonoBehaviour
             pathfinding.GetGrid().GetXY(mouseWorldPosition, out int x, out int y);
             pathfinding.GetNode(x, y).SetIsWalkable(!pathfinding.GetNode(x, y).isWalkable);
         }
+    }
+
+    public void TakeDamage(float damageTaken)
+    {
+        healthSystem.Damage(damageTaken);
+    }
+
+    public HealthSystem GetHealthSystem()
+    {
+        return healthSystem;
     }
 }
