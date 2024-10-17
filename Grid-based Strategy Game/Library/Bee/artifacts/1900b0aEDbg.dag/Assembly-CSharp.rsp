@@ -403,7 +403,6 @@
 "Assets/Scripts/GameSystems/Pathfinding.cs"
 "Assets/Scripts/GameUtils.cs"
 "Assets/Scripts/HealthBarUI.cs"
-"Assets/Scripts/TestGrid.cs"
 "Assets/Scripts/TestUnitMovement.cs"
 -langversion:9.0
 
