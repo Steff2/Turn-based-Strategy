@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -10,11 +11,10 @@ namespace Utils.HealthSystemCM
     {
         [SerializeField] private GameObject getHealthSystemGameObject;
 
-        [SerializeField] private Image image;
+        [SerializeField] private TextMeshProUGUI textMesh;
 
 
         private HealthSystem healthSystem;
-
 
         private void Start()
         {
@@ -47,7 +47,7 @@ namespace Utils.HealthSystemCM
 
         private void UpdateHealthBar()
         {
-            image.fillAmount = healthSystem.GetHealthNormalized();
+            textMesh.text = healthSystem.GetHealth() + "/" + healthSystem.GetMaxHealth();
         }
 
 
