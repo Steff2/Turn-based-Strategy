@@ -5,37 +5,63 @@ using UnityEngine;
 
 public class PathNode
 {
-    private GameGrid<PathNode> grid;
-    public int x;
-    public int y;
+    public int xPos;
+    public int yPos;
+    public PathNode parent;
+    public PathNode north;
+    public PathNode south;
+    public PathNode west;
+    public PathNode east;
+    public bool moveNorth;
+    public bool moveSouth;
+    public bool moveWest;
+    public bool moveEast;
+    public bool isOnOpenList = false;
+    public bool isOnClosedList = false;
 
-    public int gCost;
+    public int weight = 0;
+    public int gCost = 0;
     public int hCost;
     public int fCost;
 
     public Boolean isWalkable = true;
     public PathNode cameFromNode;
 
-    public PathNode(GameGrid<PathNode> grid, int x, int y)
+    public PathNode(int _xPos, int _yPos)
     {
-        this.grid = grid;
-        this.x = x;
-        this.y = y;
+        xPos = _xPos;
+        yPos = _yPos;
 
+        moveNorth = true;
+        moveSouth = true;
+        moveWest = true;
+        moveEast = true;
     }
-
+    public void ResetRestrictions()
+    {
+        moveNorth = true;
+        moveSouth = true;
+        moveWest = true;
+        moveEast = true;
+    }
     public void CalculateFCost()
     {
         fCost = gCost + hCost;
     }
-
-    public void SetIsWalkable(bool isWalkable)
+    public void SetWalkable(bool walkable)
     {
-        this.isWalkable = isWalkable;
+        weight = walkable ? 0 : Pathfinding.WALL_WEIGHT;
     }
-
+    public void SetWeight(int weight)
+    {
+        this.weight = weight;
+    }
+    public Vector3 GetWorldVector(Vector3 worldOrigin, float nodeSize)
+    {
+        return worldOrigin + new Vector3(xPos * nodeSize, yPos * nodeSize);
+    }
     public override string ToString()
     {
-        return x + " " + y;
+        return xPos + " " + yPos;
     }
 }
