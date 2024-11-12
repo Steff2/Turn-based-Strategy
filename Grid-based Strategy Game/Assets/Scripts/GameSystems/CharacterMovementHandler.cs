@@ -9,6 +9,8 @@ public class CharacterMovementHandler : MonoBehaviour
     private List<Vector3> pathVectorList;
     private int currentPathIndex;
 
+    private bool isWalking = false;
+
     private void Start()
     {
         transform.position = new Vector3(5, 5, 0);
@@ -22,6 +24,7 @@ public class CharacterMovementHandler : MonoBehaviour
     {
         if (pathVectorList != null)
         {
+
             Vector3 targetPosition = pathVectorList[currentPathIndex];
             if (Vector3.Distance(transform.position, targetPosition) > 1f)
             {
@@ -29,6 +32,8 @@ public class CharacterMovementHandler : MonoBehaviour
 
                 float distanceBefore = Vector3.Distance(transform.position, targetPosition);
                 transform.position = transform.position + speed * Time.deltaTime * moveDir;
+
+                if(!isWalking) isWalking = true;
             }
             else
             {
@@ -43,11 +48,18 @@ public class CharacterMovementHandler : MonoBehaviour
     private void StopMoving()
     {
         pathVectorList = null;
+
+        isWalking = false;
     }
 
     public Vector3 GetPosition()
     {
         return transform.position;
+    }
+
+    public bool IsWalking()
+    {
+        return isWalking;
     }
 
     public void SetTargetPosition(Vector3 targetPosition)
