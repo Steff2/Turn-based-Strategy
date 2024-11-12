@@ -4,22 +4,65 @@ using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
 
+
 public class Pathfinding
 {
-    private const int MOVE_STRAIGHT_COST = 10;
-    private const int MOVE_DIAGONAL_COST = 14;
+    private int movementCost = 15;
 
-    public static Pathfinding Instance {  get; private set; }
+    public const int WALL_WEIGHT = 80000;
+    public static Pathfinding Instance { get; private set; }
 
     private GameGrid<PathNode> grid;
     private List<PathNode> openList;
     private HashSet<PathNode> closedList;
+    private PathNode[][] existingNodes;
+
+    private float cellSize;
+    private int cellWidth;
+    private int cellHeight;
 
 
-    public Pathfinding(int width, int height)
+    public Pathfinding(int width, int height, float cellSize)
     {
         Instance = this;
-        grid = new GameGrid<PathNode>(width, height, 10f, Vector3.zero, (GameGrid<PathNode> g, int x, int y) => new PathNode(g, x, y));
+
+        this.cellWidth = width;
+        this.cellSize = cellSize;
+        this.cellHeight = height;
+
+        Initialize(width, height);
+    }
+
+    public void Initialize(int mapWidth, int mapHeight)
+    {
+        // Creates PathNodes
+        for (int x = 0; x < existingNodes.Length; x++)
+        {
+            for (int y = 0; y < existingNodes[x].Length; y++)
+            {
+                existingNodes[x][y] = new PathNode(x, y);
+            }
+        }
+        UpdateNodeConnections();
+    }
+
+    private void UpdateNodeConnections()
+    {
+        for (int x = 0; x < existingNodes.Length; x++)
+        {
+            for (int y = 0; y < existingNodes[x].Length; y++)
+            {
+                if (y < existingNodes[x].Length - 1)
+                    existingNodes[x][y].north = existingNodes[x][y + 1];
+                if (y > 0)
+                    existingNodes[x][y].south = existingNodes[x][y - 1];
+
+                if (x < existingNodes.Length - 1)
+                    existingNodes[x][y].east = existingNodes[x + 1][y];
+                if (x > 0)
+                    existingNodes[x][y].west = existingNodes[x - 1][y];
+            }
+        }
     }
 
     public GameGrid<PathNode> GetGrid()
@@ -47,7 +90,7 @@ public class Pathfinding
             List<Vector3> vectorPath = new List<Vector3>();
             foreach(PathNode pathNode in path)
             {
-                vectorPath.Add(new Vector3(pathNode.x, pathNode.y) * grid.GetCellSize() + .5f * grid.GetCellSize() * new Vector3(1, 1));
+                vectorPath.Add(new Vector3(pathNode.xPos, pathNode.yPos) * grid.GetCellSize() + .5f * grid.GetCellSize() * new Vector3(1, 1));
             }
             return vectorPath;
         }
@@ -73,12 +116,13 @@ public class Pathfinding
         }
 
         startNode.gCost = 0;
-        startNode.hCost = CalculateDistanceCost(startNode, endNode);
+        CalculateManhattanDistance(startNode, startNode.xPos, startNode.yPos, endNode.xPos, endNode.yPos);
         startNode.CalculateFCost();
 
         while(openList.Count > 0)
         {
             PathNode currentNode = GetLowestFCostNode(openList);
+
             if(currentNode == endNode)
             {
                 return CalculatePath(endNode);
@@ -96,12 +140,12 @@ public class Pathfinding
                     continue;
                 }
 
-                int tentativeGCost = currentNode.gCost + CalculateDistanceCost(currentNode, neighbourNode);
+                int tentativeGCost = currentNode.gCost + neighbourNode.weight + movementCost;
                 if(tentativeGCost < neighbourNode.gCost)
                 {
                     neighbourNode.cameFromNode = currentNode;
                     neighbourNode.gCost = tentativeGCost;
-                    neighbourNode.hCost = CalculateDistanceCost(neighbourNode, endNode);
+                    CalculateManhattanDistance(neighbourNode, neighbourNode.xPos, neighbourNode.yPos, endNode.xPos, endNode.yPos);
                     neighbourNode.CalculateFCost();
 
                     if (!openList.Contains(neighbourNode))
@@ -116,32 +160,40 @@ public class Pathfinding
         return null;
     }
 
+    private void CalculateManhattanDistance(PathNode currentNode, int currX, int currY, int targetX, int targetY)
+    {
+        currentNode.parent = null;
+        currentNode.hCost = (Mathf.Abs(currX - targetX) + Mathf.Abs(currY - targetY));
+        currentNode.isOnOpenList = false;
+        currentNode.isOnClosedList = false;
+    }
+
     private List<PathNode> GetNeighourList(PathNode currentNode)
     {
         List<PathNode> neighbourList = new();
 
-        if(currentNode.x - 1 >= 0)
+        if(currentNode.xPos - 1 >= 0)
         {
             // Left
-            neighbourList.Add(grid.GetGridObject(currentNode.x - 1, currentNode.y));
+            neighbourList.Add(grid.GetGridObject(currentNode.xPos - 1, currentNode.yPos));
             // Left Down
-            if (currentNode.y - 1 >= 0) neighbourList.Add(grid.GetGridObject(currentNode.x - 1, currentNode.y - 1));
+            if (currentNode.yPos - 1 >= 0) neighbourList.Add(grid.GetGridObject(currentNode.xPos - 1, currentNode.yPos - 1));
             // Left Up
-            if (currentNode.y + 1 < grid.GetHeight()) neighbourList.Add(grid.GetGridObject(currentNode.x - 1, currentNode.y + 1));
+            if (currentNode.yPos + 1 < grid.GetHeight()) neighbourList.Add(grid.GetGridObject(currentNode.xPos - 1, currentNode.yPos + 1));
         }
-        if(currentNode.x + 1 < grid.GetWidth())
+        if(currentNode.xPos + 1 < grid.GetWidth())
         {
             // Right
-            neighbourList.Add(grid.GetGridObject(currentNode.x + 1, currentNode.y));
+            neighbourList.Add(grid.GetGridObject(currentNode.xPos + 1, currentNode.yPos));
             //Right Down
-            if (currentNode.y - 1 >= 0) neighbourList.Add(grid.GetGridObject(currentNode.x + 1, currentNode.y - 1));
+            if (currentNode.yPos - 1 >= 0) neighbourList.Add(grid.GetGridObject(currentNode.xPos + 1, currentNode.yPos - 1));
             //Right Up
-            if (currentNode.y + 1 < grid.GetHeight()) neighbourList.Add(grid.GetGridObject(currentNode.x + 1, currentNode.y + 1));
+            if (currentNode.yPos + 1 < grid.GetHeight()) neighbourList.Add(grid.GetGridObject(currentNode.xPos + 1, currentNode.yPos + 1));
         }
         // Down
-        if (currentNode.y - 1 >= 0) neighbourList.Add(grid.GetGridObject(currentNode.x, currentNode.y - 1));
+        if (currentNode.yPos - 1 >= 0) neighbourList.Add(grid.GetGridObject(currentNode.xPos, currentNode.yPos - 1));
         // Up
-        if (currentNode.y + 1 < grid.GetHeight()) neighbourList.Add(grid.GetGridObject(currentNode.x, currentNode.y + 1));
+        if (currentNode.yPos + 1 < grid.GetHeight()) neighbourList.Add(grid.GetGridObject(currentNode.xPos, currentNode.yPos + 1));
 
         return neighbourList;
     }
@@ -170,13 +222,5 @@ public class Pathfinding
             }
         }
         return lowestFCostNode;
-    }
-
-    private int CalculateDistanceCost(PathNode a, PathNode b)
-    {
-        int xDistance = Mathf.Abs(a.x - b.x);
-        int yDistance = Mathf.Abs(a.y - b.y);
-        int remaining = Mathf.Abs(xDistance - yDistance);
-        return MOVE_DIAGONAL_COST * Mathf.Min(xDistance, yDistance) + MOVE_STRAIGHT_COST * remaining;
     }
 }
