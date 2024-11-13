@@ -47,5 +47,10 @@ namespace GridCombat
         { 
             return grid;
         }
+
+        public Pathfinding GetPathfinding() 
+        { 
+            return pathfindingGrid;
+        }
     }
 }
