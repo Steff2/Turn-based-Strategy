@@ -3,7 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using static UnityEditor.PlayerSettings;
 
+
+// TODO - Make class for holding a found path to be used by CharacterMovementHandler
+// current way is too scuffed
 
 public class Pathfinding
 {
@@ -20,7 +24,9 @@ public class Pathfinding
     private float cellSize;
     private int cellWidth;
     private int cellHeight;
-
+    private Vector3 worldOrigin;
+    public List<PathNode> pathNodeList;
+    public List<Vector3> pathVectorList;
 
     public Pathfinding(int width, int height, float cellSize)
     {
@@ -65,16 +71,25 @@ public class Pathfinding
         }
     }
 
-    public GameGrid<PathNode> GetGrid()
+    public PathNode[][] GetMapNodes()
     {
-        return grid;
+        return existingNodes;
     }
 
     public PathNode GetNode(int x, int y)
     {
-        return grid.GetGridObject(x, y);
+        return existingNodes[x][y];
     }
-
+    public List<PathNode> GetPath(Vector3 start, Vector3 end)
+    {
+        start = start - worldOrigin;
+        end = end - worldOrigin;
+        start = start / cellSize;
+        end = end / cellSize;
+        var startMapPos = GetClosestValidPos(Mathf.RoundToInt(start.x), Mathf.RoundToInt(start.y));
+        var endMapPos = GetClosestValidPos(Mathf.RoundToInt(end.x), Mathf.RoundToInt(end.y));
+        return FindPath((int)startMapPos.x, (int)startMapPos.y, (int)endMapPos.x, (int)endMapPos.y);
+    }
     public List<Vector3> FindPath(Vector3 startWorldPosition, Vector3 endWorldPosition)
     {
         grid.GetXY(startWorldPosition, out int startX, out int startY);
@@ -98,68 +113,89 @@ public class Pathfinding
 
     public List<PathNode> FindPath(int startX, int startY, int endX, int endY)
     {
-        PathNode startNode = grid.GetGridObject(startX, startY);
-        PathNode endNode = grid.GetGridObject(endX, endY);
 
-        openList = new List<PathNode>{ startNode };
+        PathNode currentNode = existingNodes[startX][startY];
+        PathNode endNode = existingNodes[endX][endY];
+
+        openList = new List<PathNode>{ currentNode };
         closedList = new HashSet<PathNode>();
 
-        for (int x = 0; x < grid.GetWidth(); x++)
+        CalculateAllHeuristics(endX, endY);
+
+        /*for (int x = 0; x < grid.GetWidth(); x++)
         {
             for (int y = 0; y < grid.GetHeight(); y++)
             {
                 PathNode pathNode = grid.GetGridObject(x, y);
-                pathNode.gCost = 99999999;
-                pathNode.CalculateFCost();
-                pathNode.cameFromNode = null;
+                //pathNode.gCost = 99999999;
+                //pathNode.CalculateFCost();
             }
+        }*/
+        if (currentNode == endNode)
+        {
+            return new List<PathNode> { currentNode };
         }
 
-        startNode.gCost = 0;
-        CalculateManhattanDistance(startNode, startNode.xPos, startNode.yPos, endNode.xPos, endNode.yPos);
-        startNode.CalculateFCost();
-
-        while(openList.Count > 0)
+        while (openList.Count > 0)
         {
-            PathNode currentNode = GetLowestFCostNode(openList);
 
-            if(currentNode == endNode)
-            {
-                return CalculatePath(endNode);
-            }
+            // Check the north node
+            if (currentNode.moveNorth) DetermineNodeValues(currentNode, currentNode.north, endNode);
+            // Check the east node
+            if (currentNode.moveEast) DetermineNodeValues(currentNode, currentNode.east, endNode);
+            // Check the south node
+            if (currentNode.moveSouth) DetermineNodeValues(currentNode, currentNode.south, endNode);
+            // Check the west node
+            if (currentNode.moveWest) DetermineNodeValues(currentNode, currentNode.west, endNode);
+
+            currentNode = GetLowestFCostNode(openList);
 
             openList.Remove(currentNode);
+            currentNode.isOnOpenList = false;
             closedList.Add(currentNode);
+            currentNode.isOnClosedList = true;
 
-            foreach (PathNode neighbourNode in GetNeighourList(currentNode))
+            if (currentNode == endNode)
             {
-                if (closedList.Contains(neighbourNode)) continue;
-                if (!neighbourNode.isWalkable)
-                {
-                    closedList.Add(neighbourNode);
-                    continue;
-                }
-
-                int tentativeGCost = currentNode.gCost + neighbourNode.weight + movementCost;
-                if(tentativeGCost < neighbourNode.gCost)
-                {
-                    neighbourNode.cameFromNode = currentNode;
-                    neighbourNode.gCost = tentativeGCost;
-                    CalculateManhattanDistance(neighbourNode, neighbourNode.xPos, neighbourNode.yPos, endNode.xPos, endNode.yPos);
-                    neighbourNode.CalculateFCost();
-
-                    if (!openList.Contains(neighbourNode))
-                    {
-                        openList.Add(neighbourNode);
-                    }
-                }
+                openList.Add(currentNode);
+                return CalculatePath(endNode);
             }
         }
 
         //Out of nodes on the openList
         return null;
     }
+    private void DetermineNodeValues(PathNode currentNode, PathNode testNode, PathNode endNode)
+    {
+        if (!closedList.Contains(testNode))
+        {
+            if (!openList.Contains(testNode))
+            {
+                if (!testNode.isWalkable)
+                {
+                    closedList.Add(testNode);
+                    return;
+                }
 
+                int tentativeGCost = currentNode.gCost + testNode.weight + movementCost;
+
+                if (tentativeGCost < testNode.gCost)
+                {
+                    testNode.Parent = currentNode;
+                    testNode.gCost = tentativeGCost;
+                    testNode.CalculateFCost();
+                    openList.Add(testNode);
+                    testNode.isOnOpenList = true;
+                }
+            } else {
+                testNode.Parent = currentNode;
+                testNode.gCost = currentNode.gCost + testNode.weight + movementCost;
+                openList.Remove(testNode);
+                testNode.CalculateFCost();
+                openList.Add(testNode);
+            }
+        }
+    }
     private void CalculateManhattanDistance(PathNode currentNode, int currX, int currY, int targetX, int targetY)
     {
         currentNode.parent = null;
@@ -167,50 +203,43 @@ public class Pathfinding
         currentNode.isOnOpenList = false;
         currentNode.isOnClosedList = false;
     }
-
-    private List<PathNode> GetNeighourList(PathNode currentNode)
+    private Vector3 GetClosestValidPos(int mapX, int mapY)
     {
-        List<PathNode> neighbourList = new();
+        int width = cellWidth;
+        int height = cellHeight;
+        // Inside bounds
+        while (mapX < 0) mapX++;
+        while (mapY < 0) mapY++;
+        while (mapX >= width) mapX--;
+        while (mapY >= height) mapY--;
 
-        if(currentNode.xPos - 1 >= 0)
-        {
-            // Left
-            neighbourList.Add(grid.GetGridObject(currentNode.xPos - 1, currentNode.yPos));
-            // Left Down
-            if (currentNode.yPos - 1 >= 0) neighbourList.Add(grid.GetGridObject(currentNode.xPos - 1, currentNode.yPos - 1));
-            // Left Up
-            if (currentNode.yPos + 1 < grid.GetHeight()) neighbourList.Add(grid.GetGridObject(currentNode.xPos - 1, currentNode.yPos + 1));
-        }
-        if(currentNode.xPos + 1 < grid.GetWidth())
-        {
-            // Right
-            neighbourList.Add(grid.GetGridObject(currentNode.xPos + 1, currentNode.yPos));
-            //Right Down
-            if (currentNode.yPos - 1 >= 0) neighbourList.Add(grid.GetGridObject(currentNode.xPos + 1, currentNode.yPos - 1));
-            //Right Up
-            if (currentNode.yPos + 1 < grid.GetHeight()) neighbourList.Add(grid.GetGridObject(currentNode.xPos + 1, currentNode.yPos + 1));
-        }
-        // Down
-        if (currentNode.yPos - 1 >= 0) neighbourList.Add(grid.GetGridObject(currentNode.xPos, currentNode.yPos - 1));
-        // Up
-        if (currentNode.yPos + 1 < grid.GetHeight()) neighbourList.Add(grid.GetGridObject(currentNode.xPos, currentNode.yPos + 1));
-
-        return neighbourList;
+        return new Vector3(mapX, mapY);
     }
-
     private List<PathNode> CalculatePath(PathNode endNode)
     {
         List<PathNode> path = new() { endNode };
         PathNode currentNode = endNode;
-        while(currentNode.cameFromNode != null)
+        while(currentNode.Parent != null)
         {
-            path.Add(currentNode.cameFromNode);
-            currentNode = currentNode.cameFromNode;
+            path.Add(currentNode.Parent);
+            currentNode = currentNode.Parent;
         }
         path.Reverse();
+        PathRoute(path, worldOrigin, cellSize);
         return path;
     }
-
+    private void CalculateAllHeuristics(int endX, int endY)
+    {
+        int rows = cellHeight;
+        int cols = cellWidth;
+        for (int x = 0; x < cols; x++)
+        {
+            for (int y = 0; y < rows; y++)
+            {
+                CalculateManhattanDistance(existingNodes[x][y], x, y, endX, endY);
+            }
+        }
+    }
     private PathNode GetLowestFCostNode(List<PathNode> pathNodeList)
     {
         PathNode lowestFCostNode = pathNodeList[0];
@@ -222,5 +251,14 @@ public class Pathfinding
             }
         }
         return lowestFCostNode;
+    }
+    public void PathRoute(List<PathNode> pathNodeList, Vector3 worldOrigin, float cellSize)
+    {
+        this.pathNodeList = pathNodeList;
+        pathVectorList = new List<Vector3>();
+        foreach (PathNode pathNode in pathNodeList)
+        {
+            pathVectorList.Add(pathNode.GetWorldVector(worldOrigin, cellSize));
+        }
     }
 }
