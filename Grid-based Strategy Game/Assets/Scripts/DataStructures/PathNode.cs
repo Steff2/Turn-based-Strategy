@@ -25,7 +25,7 @@ public class PathNode
     public int fCost;
 
     public Boolean isWalkable = true;
-    public PathNode cameFromNode;
+    public PathNode Parent;
 
     public PathNode(int _xPos, int _yPos)
     {
