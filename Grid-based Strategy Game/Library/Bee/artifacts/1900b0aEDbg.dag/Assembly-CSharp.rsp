@@ -395,7 +395,6 @@
 "Assets/Scripts/Abstracts&Interfaces/Targetable.cs"
 "Assets/Scripts/DataStructures/BinaryTree.cs"
 "Assets/Scripts/DataStructures/PathNode.cs"
-"Assets/Scripts/DataStructures/TreeNode.cs"
 "Assets/Scripts/GameManager.cs"
 "Assets/Scripts/GameSystems/CharacterMovementHandler.cs"
 "Assets/Scripts/GameSystems/CombatGridSystem.cs"

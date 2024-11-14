@@ -410,9 +410,9 @@ MonoBehaviour:
   m_SceneHierarchy:
     m_TreeViewState:
       scrollPos: {x: 0, y: 0}
-      m_SelectedIDs: b61a0000
+      m_SelectedIDs: 
       m_LastClickedID: 0
-      m_ExpandedIDs: 12fbffff
+      m_ExpandedIDs: 12fbffffc6600000
       m_RenameOverlay:
         m_UserAcceptedRename: 0
         m_Name: 
@@ -976,7 +976,7 @@ MonoBehaviour:
     m_SkipHidden: 0
     m_SearchArea: 1
     m_Folders:
-    - Assets/Scripts
+    - Assets/Scripts/DataStructures
     m_Globs: []
     m_OriginalText: 
     m_ImportLogFlags: 0
@@ -984,15 +984,15 @@ MonoBehaviour:
   m_ViewMode: 1
   m_StartGridSize: 64
   m_LastFolders:
-  - Assets/Scripts
+  - Assets/Scripts/DataStructures
   m_LastFoldersGridSize: -1
   m_LastProjectPath: F:\Game Projekt\Turn-based Strategy\Grid-based Strategy Game
   m_LockTracker:
     m_IsLocked: 0
   m_FolderTreeState:
     scrollPos: {x: 0, y: 0}
-    m_SelectedIDs: 46610000
-    m_LastClickedID: 24902
+    m_SelectedIDs: 56610000
+    m_LastClickedID: 24918
     m_ExpandedIDs: 00000000446100004661000000ca9a3b
     m_RenameOverlay:
       m_UserAcceptedRename: 0
