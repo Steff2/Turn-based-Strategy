@@ -65,18 +65,18 @@ public class BinaryTree
             {
                 Debug.Log(e);
             }
-            nodeCount++;
         }
     }
     public void Insert(TreeNode treeNode, PathNode pathNode, int fCost)
     {
-        if (treeNode.pathNode.fCost < pathNode.fCost)
+        if (treeNode.pathNode.fCost <= pathNode.fCost)
         {
 
-            if (treeNode == null)
+            if (treeNode.rightTreeNode == null)
             {
                 treeNode.rightTreeNode = new TreeNode(pathNode, null, null);
                 treeNode.rightTreeNode.parentNode = treeNode;
+                nodeCount++;
             }
             else
             {
@@ -84,12 +84,13 @@ public class BinaryTree
             }
 
         }
-        else if (treeNode.pathNode.fCost > pathNode.fCost)
+        else if (treeNode.pathNode.fCost >= pathNode.fCost)
         {
-            if (treeNode == null)
+            if (treeNode.leftTreeNode == null)
             {
                 treeNode.leftTreeNode = new TreeNode(pathNode, null, null);
                 treeNode.leftTreeNode.parentNode = treeNode;
+                nodeCount++;
             }
             else
             {
@@ -129,7 +130,7 @@ public class BinaryTree
                 {
                     parentRoot.leftTreeNode = newChild;
                 }
-                else
+                else if (newChild.leftTreeNode == treeNode)
                 {
                     parentRoot.rightTreeNode = newChild;
                 }
@@ -137,6 +138,7 @@ public class BinaryTree
                 if(treeNode == root)
                 {
                     root = newChild;
+                    root.parentNode = null;
                 }
             }
             else
@@ -146,6 +148,7 @@ public class BinaryTree
                 newChild.leftTreeNode = treeNode.leftTreeNode;
             }
         }
+        nodeCount--;
     }
     private TreeNode GetRightMostLeaf(TreeNode node)
     {
@@ -160,13 +163,20 @@ public class BinaryTree
     }
     public PathNode GetLowestValue()
     {
-        var tmp = root;
-        TreeNode lowestValueNode = root;
-        while (tmp != null)
+        if(root.leftTreeNode != null)
         {
-            lowestValueNode = tmp;
-            tmp = tmp.leftTreeNode;
+            var tmp = root;
+            TreeNode lowestValueNode = root;
+            while (tmp != null)
+            {
+                lowestValueNode = tmp;
+                tmp = tmp.leftTreeNode;
+            }
+            return lowestValueNode.pathNode;
         }
-        return lowestValueNode.pathNode;
+        else
+        {
+            return root.pathNode;
+        }
     }
 }
