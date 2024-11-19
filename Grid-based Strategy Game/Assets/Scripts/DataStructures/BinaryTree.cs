@@ -158,4 +158,15 @@ public class BinaryTree
         }
         return targetNode;
     }
+    public PathNode GetLowestValue()
+    {
+        var tmp = root;
+        TreeNode lowestValueNode = root;
+        while (tmp != null)
+        {
+            lowestValueNode = tmp;
+            tmp = tmp.leftTreeNode;
+        }
+        return lowestValueNode.pathNode;
+    }
 }

@@ -1,35 +1,59 @@
-using GridCombat;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using Utils;
 
-public class CombatGridSystem : MonoBehaviour
+namespace GridCombat
 {
-    // Start is called before the first frame update
-    void Start()
+    public class CombatGridSystem : MonoBehaviour
     {
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-
-
-
-
-    public class CombatGridObject
-    {
-        private GameGrid<CombatGridObject> grid;
-        private int x;
-        private int y;
-
-        public CombatGridObject(GameGrid<CombatGridObject> grid, int x, int y)
+        public enum State
         {
-            this.grid = grid;
-            this.x = x;
-            this.y = y; 
+            Walking,
+            Idle
+        }
+
+        private State state;
+
+        [SerializeField] UnitGridCombat unitGridCombat;
+        // Start is called before the first frame update
+        void Awake()
+        {
+            state = State.Idle;
+        }
+
+        // Update is called once per frame
+        void Update()
+        {
+            switch (state)
+            {
+                case State.Idle:
+
+                    if (Input.GetMouseButtonDown(0))
+                    {
+                        state = State.Walking;
+                        unitGridCombat.MoveTo(GameUtils.GetMouseWorldPosition());
+                    }
+                    break;
+
+                case State.Walking:
+                    break;
+            }
+        }
+
+
+
+
+        public class CombatGridObject
+        {
+            private GameGrid<CombatGridObject> grid;
+            private int x;
+            private int y;
+
+            public CombatGridObject(GameGrid<CombatGridObject> grid, int x, int y)
+            {
+                this.grid = grid;
+                this.x = x;
+                this.y = y;
+            }
         }
     }
 }

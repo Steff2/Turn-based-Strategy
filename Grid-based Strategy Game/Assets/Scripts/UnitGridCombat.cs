@@ -1,26 +1,40 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using Utils.HealthSystemCM;
 
-public class UnitGridCombat : MonoBehaviour
+namespace GridCombat
 {
-    public Team team;
-    public HealthSystem healthSystem;
-
-    public enum Team
+    public class UnitGridCombat : MonoBehaviour
     {
-        Red,
-        Blue
-    }
+        [SerializeField] private Team team;
 
-    public void MoveTo(int x, int y)
-    {
+        State state;
+        public enum Team
+        {
+            Red,
+            Blue
+        }
+        public enum State
+        {
+            Walking,
+            Shooting,
+            Idle
+        }
+        //private HealthSystem healthSystem;
+        private CharacterMovementHandler characterMovementHandler;
 
-    }
+        private void Awake()
+        {
+            characterMovementHandler = gameObject.GetComponent<CharacterMovementHandler>();
+        }
+        public void MoveTo(Vector3 targetPos)
+        {
+            state = State.Walking;
+            characterMovementHandler.SetTargetPosition(targetPos + new Vector3(1, 1)); // Needs Action to set state back to normal after reaching destination)
+        }
 
-    public void TakeDamage(float damageTaken)
-    {
-        healthSystem.Damage(damageTaken);
+        public void TakeDamage(float damageTaken)
+        {
+            //healthSystem.Damage(damageTaken);
+        }
     }
 }

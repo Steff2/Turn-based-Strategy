@@ -1,3 +1,12 @@
 2h - Einlesen in Pathfinding (auch für DOTS) und Optimierungen, bauen des frameworks für Units (abstracts, interfaces)
 2.5h - Sprite Movement
 1.5h - HealthSystem
+1h - Healthbar, testing
+
+17.10.2024 - fixed bug with testunitmovement script, had to add new License, since then SUCCEEDED(hr) error in unity editor, but no issue with it so far. No fix worked so far.
+
+45min - Codemonkey GridCombat/Pathfinding/Binarytree review
+1h - Updated pathfinding (for example not needing to initialize a grid anymore), started combatgridsystem and unitgridcombat, added gamemanager to set scene
+1.75h - Updated pathfinding with more functionality, GetPath, CalcHeuris,GetClosValPath,PathRoute (but function), restructured FindPath
+2h - Binary Search Tree implementation (to be tested)
+5h - Pathfinding testing + debugging
