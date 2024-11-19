@@ -150,12 +150,16 @@ public class Pathfinding
         PathNode currentNode = existingNodes[startX][startY];
         PathNode endNode = existingNodes[endX][endY];
 
+        currentNode.gCost = 0;
+
         CalculateAllHeuristics(endX, endY);
 
         openListTree = new BinaryTree();
         openListCount = 1;
+        openListTree.AddNode(currentNode);
         closedList = new HashSet<PathNode>();
         targetFound = false;
+
         // If the beginning is the target
         if (currentNode == endNode)
         {
@@ -177,7 +181,7 @@ public class Pathfinding
             if (!targetFound)
             {
                 openListTree.RemoveNode(currentNode);
-                openListTree.nodeCount--;
+                openListCount--;
                 currentNode.isOnOpenList = false;
                 closedList.Add(currentNode);
                 currentNode.isOnClosedList = true;
@@ -185,7 +189,6 @@ public class Pathfinding
                 currentNode = openListTree.GetLowestValue();
             // Target found
             } else {
-                openListTree.AddNode(currentNode);
                 return CalculatePath(endNode);
             }
         }
@@ -206,19 +209,16 @@ public class Pathfinding
             targetFound = true;
             return;
         }
+        // If it is not traversable
+        if (!testNode.isWalkable)
+        {
+            return;
+        }
 
         if (!testNode.isOnClosedList)
         {
-            if (!testNode.isOnOpenList)
+            if (testNode.isOnOpenList)
             {
-                // If it is not traversable
-                if (!testNode.isWalkable)
-                {
-                    closedList.Add(testNode);
-                    testNode.isOnClosedList = true;
-                    return;
-                }
-
                 int tentativeGCost = currentNode.gCost + testNode.weight + movementCost;
 
                 // Take the lower gCost between test and current node
@@ -226,18 +226,18 @@ public class Pathfinding
                 {
                     testNode.Parent = currentNode;
                     testNode.gCost = tentativeGCost;
+                    openListTree.RemoveNode(testNode);
                     testNode.CalculateFCost();
                     openListTree.AddNode(testNode);
-                    testNode.isOnOpenList = true;
-                    openListCount++;
 
                 }
             } else {
                 testNode.Parent = currentNode;
-                testNode.gCost = currentNode.gCost + testNode.weight + movementCost;
-                openListTree.RemoveNode(testNode);
+                testNode.gCost = currentNode.gCost + currentNode.weight + movementCost;
                 testNode.CalculateFCost();
                 openListTree.AddNode(testNode);
+                testNode.isOnOpenList = true;
+                openListCount++;
             }
         }
     }
@@ -245,13 +245,6 @@ public class Pathfinding
     {
         List<PathNode> pathNodeList = GetPath(start, end);
         return new PathStructure(pathNodeList, worldOrigin, cellSize);
-    }
-    private void CalculateManhattanDistance(PathNode currentNode, int currX, int currY, int targetX, int targetY)
-    {
-        currentNode.parent = null;
-        currentNode.hCost = (Mathf.Abs(currX - targetX) + Mathf.Abs(currY - targetY));
-        currentNode.isOnOpenList = false;
-        currentNode.isOnClosedList = false;
     }
     public Vector3 GetClosestValidPosition(Vector3 position)
     {
@@ -297,6 +290,13 @@ public class Pathfinding
                 CalculateManhattanDistance(existingNodes[x][y], x, y, endX, endY);
             }
         }
+    }
+    private void CalculateManhattanDistance(PathNode currentNode, int currX, int currY, int targetX, int targetY)
+    {
+        currentNode.parent = null;
+        currentNode.hCost = (Mathf.Abs(currX - targetX) + Mathf.Abs(currY - targetY));
+        currentNode.isOnOpenList = false;
+        currentNode.isOnClosedList = false;
     }
     private void ConvertVectorPosition(Vector3 position, out int x, out int y)
     {
