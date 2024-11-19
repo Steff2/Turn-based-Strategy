@@ -3,8 +3,8 @@ using UnityEngine;
 using UnityEngine.UIElements;
 using static UnityEditor.PlayerSettings;
 
-public class PathStructure : MonoBehaviour
-{
+public class PathStructure
+{ 
     public List<PathNode> pathNodeList;
     public List<Vector3> vectorPathList;
 
