@@ -124,8 +124,8 @@ public class Pathfinding
         end -= worldOrigin;
         start /= cellSize;
         end /= cellSize;
-        var startVec = GetClosestValidPos(Mathf.RoundToInt(start.x), Mathf.RoundToInt(start.y));
-        var endVec = GetClosestValidPos(Mathf.RoundToInt(end.x), Mathf.RoundToInt(end.y));
+        var startVec = GetClosestValidPos(Mathf.FloorToInt(start.x), Mathf.FloorToInt(start.y));
+        var endVec = GetClosestValidPos(Mathf.FloorToInt(end.x), Mathf.FloorToInt(end.y));
         return FindPath((int)startVec.x, (int)startVec.y, (int)endVec.x, (int)endVec.y);
 
     }
@@ -166,9 +166,10 @@ public class Pathfinding
             return new List<PathNode> { currentNode };
         }
 
-        while (openListCount > 0)
+        int iterations = 0;
+        do
         {
-
+            iterations++;
             // Check the north node
             if (currentNode.moveNorth) DetermineNodeValues(currentNode, currentNode.north, endNode);
             // Check the east node
@@ -187,14 +188,20 @@ public class Pathfinding
                 currentNode.isOnClosedList = true;
 
                 currentNode = openListTree.GetLowestValue();
-            // Target found
-            } else {
-                return CalculatePath(endNode);
+                // Target found
             }
+        } while (!targetFound && openListCount > 0 && iterations < 60000);
+        if (iterations >= 60000) Debug.Log("iteration overload");
+
+        if(targetFound)
+        {
+            path = CalculatePath(endNode);
+        } else
+        {
+            // No path
         }
 
-        // Out of nodes on the openList
-        return null;
+        return path;
     }
     private void DetermineNodeValues(PathNode currentNode, PathNode testNode, PathNode endNode)
     {
@@ -205,7 +212,7 @@ public class Pathfinding
         // Check to see if the node is the target
         if (testNode == endNode)
         {
-            endNode.parent = testNode;
+            endNode.parent = currentNode;
             targetFound = true;
             return;
         }
@@ -224,7 +231,7 @@ public class Pathfinding
                 // Take the lower gCost between test and current node
                 if (tentativeGCost < testNode.gCost)
                 {
-                    testNode.Parent = currentNode;
+                    testNode.parent = currentNode;
                     testNode.gCost = tentativeGCost;
                     openListTree.RemoveNode(testNode);
                     testNode.CalculateFCost();
@@ -232,7 +239,7 @@ public class Pathfinding
 
                 }
             } else {
-                testNode.Parent = currentNode;
+                testNode.parent = currentNode;
                 testNode.gCost = currentNode.gCost + currentNode.weight + movementCost;
                 testNode.CalculateFCost();
                 openListTree.AddNode(testNode);
@@ -268,12 +275,12 @@ public class Pathfinding
     // Construct the path from all nodes
     private List<PathNode> CalculatePath(PathNode endNode)
     {
-        List<PathNode > pathNodes = new List<PathNode>();
+        List<PathNode > pathNodes = new List<PathNode>{ endNode };
         PathNode currentNode = endNode;
-        while(currentNode.Parent != null)
+        while(currentNode.parent != null)
         {
-            pathNodes.Add(currentNode.Parent);
-            currentNode = currentNode.Parent;
+            pathNodes.Add(currentNode.parent);
+            currentNode = currentNode.parent;
         }
         pathNodes.Reverse();
         return pathNodes;
