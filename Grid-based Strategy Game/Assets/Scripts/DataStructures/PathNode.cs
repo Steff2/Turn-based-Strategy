@@ -25,7 +25,6 @@ public class PathNode
     public int fCost;
 
     public Boolean isWalkable = true;
-    public PathNode Parent;
 
     public PathNode(int _xPos, int _yPos)
     {
@@ -58,7 +57,7 @@ public class PathNode
     }
     public Vector3 GetWorldVector(Vector3 worldOrigin, float nodeSize)
     {
-        return worldOrigin + new Vector3(xPos * nodeSize, yPos * nodeSize);
+        return worldOrigin + new Vector3(xPos * nodeSize + 5, yPos * nodeSize + 5);
     }
     public override string ToString()
     {
