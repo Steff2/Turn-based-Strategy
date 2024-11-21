@@ -34,7 +34,7 @@ public class CharacterMovementHandler : MonoBehaviour
 
             transform.position = transform.position + speed * Time.deltaTime * moveDir;
 
-            if (Vector3.Distance(transform.position, targetPosition) > 1f)
+            if (Vector3.Distance(transform.position, targetPosition) > 0.1f)
             {
                 if (state == State.Standing)
                 {
@@ -81,7 +81,7 @@ public class CharacterMovementHandler : MonoBehaviour
 
         if (pathVectorList.Count > 0)
         {
-            currentPathIndex = 0;
+            currentPathIndex = 1;
         }
         else
         {
