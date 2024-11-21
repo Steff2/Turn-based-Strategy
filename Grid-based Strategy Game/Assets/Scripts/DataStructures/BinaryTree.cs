@@ -2,7 +2,8 @@ using UnityEngine;
 
 public class BinaryTree
 {
-
+    private const bool right = true;
+    private const bool left = false;
     public class TreeNode
     {
         public TreeNode parentNode;
@@ -110,56 +111,87 @@ public class BinaryTree
             return;
         }
 
-        if(treeNode.leftTreeNode == null && treeNode.rightTreeNode == null)
+        var parentNode = treeNode.parentNode;
+        // There are no leafs on either side
+        if (treeNode.leftTreeNode == null && treeNode.rightTreeNode == null)
         {
-            if (root.pathNode == pathNode)
+            if (root == treeNode)
             {
                 root = null;
-            }
-        }
-        else
-        {
-            var parentRoot = treeNode.parentNode;
-
-            if (treeNode.leftTreeNode == null || treeNode.rightTreeNode == null)
-            {
-                var newChild = treeNode.leftTreeNode ?? treeNode.rightTreeNode;
-                newChild.parentNode = parentRoot;
-
-                if(newChild.leftTreeNode == treeNode)
-                {
-                    parentRoot.leftTreeNode = newChild;
-                }
-                else if (newChild.leftTreeNode == treeNode)
-                {
-                    parentRoot.rightTreeNode = newChild;
-                }
-
-                if(treeNode == root)
-                {
-                    root = newChild;
-                    root.parentNode = null;
-                }
+                nodeCount--;
+                return;
             }
             else
             {
-                var newChild = GetRightMostLeaf(treeNode);
-                parentRoot.leftTreeNode = newChild;
-                newChild.leftTreeNode = treeNode.leftTreeNode;
+                if (parentNode.leftTreeNode == treeNode)
+                {
+                    parentNode.leftTreeNode = null;
+                    nodeCount--;
+                    return;
+                }
+                else if (parentNode.rightTreeNode == treeNode)
+                {
+                    parentNode.rightTreeNode = null;
+                    nodeCount--;
+                    return;
+                }
             }
+        }
+        // There are leafs on one side
+        else if (treeNode.leftTreeNode == null || treeNode.rightTreeNode == null)
+        {
+
+            var newChild = treeNode.leftTreeNode ?? treeNode.rightTreeNode;
+
+            if (root == treeNode)
+            {
+                root = newChild;
+                root.parentNode = null;
+                nodeCount--;
+                return;
+            }
+
+            newChild.parentNode = parentNode;
+        }
+        // There are leafs on both sides
+        else
+        {
+            var rightChild = treeNode.rightTreeNode;
+            var successor = GetLowestLeaf(rightChild, left);
+            rightChild.parentNode = successor;
+            parentNode.rightTreeNode = successor;
+            nodeCount--;
+            return;
         }
         nodeCount--;
     }
-    private TreeNode GetRightMostLeaf(TreeNode node)
+    private TreeNode GetLowestLeaf(TreeNode node, bool direction)
     {
-        var testNode = node;
-        var targetNode = node;
-        while (testNode != null) 
+        if (node == null)
+        { return null; }
+
+        TreeNode treeDirection;
+        // Which direction to traverse on the tree to look for leafs
+        if (direction == right)
         {
-            targetNode = testNode;
-            testNode = testNode.rightTreeNode;
+            treeDirection = node.rightTreeNode;
         }
-        return targetNode;
+        else
+        {
+            treeDirection = node.leftTreeNode;
+        }
+        // Current node is leaf
+        if (treeDirection == null)
+        {
+            return node;
+        }
+        // Recursively look for leaf node
+        else
+        {
+            GetLowestLeaf(treeDirection, direction);
+        }
+        // Error
+        return null;
     }
     public PathNode GetLowestValue()
     {
