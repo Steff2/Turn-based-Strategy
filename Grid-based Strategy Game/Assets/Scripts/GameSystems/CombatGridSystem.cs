@@ -30,7 +30,9 @@ namespace GridCombat
                     if (Input.GetMouseButtonDown(0))
                     {
                         state = State.Walking;
-                        unitGridCombat.MoveTo(GameUtils.GetMouseWorldPosition());
+                        unitGridCombat.MoveTo(GameUtils.GetMouseWorldPosition(), () => {
+                            state = State.Idle;
+                        });
                     }
                     break;
 

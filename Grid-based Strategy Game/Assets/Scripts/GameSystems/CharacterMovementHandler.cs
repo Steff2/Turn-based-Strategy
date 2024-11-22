@@ -1,15 +1,11 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class CharacterMovementHandler : MonoBehaviour
 {
-    public enum State
-    {
-        Walking,
-        Standing
-    }
+    Action onReachedPosition;
 
-    private State state;
     private const float speed = 30f;
 
     private List<Vector3> pathVectorList;
@@ -34,14 +30,7 @@ public class CharacterMovementHandler : MonoBehaviour
 
             transform.position = transform.position + speed * Time.deltaTime * moveDir;
 
-            if (Vector3.Distance(transform.position, targetPosition) > 0.1f)
-            {
-                if (state == State.Standing)
-                {
-                    state = State.Walking;
-                }
-            }
-            else
+            if (Vector3.Distance(transform.position, targetPosition) < 1f)
             {
                 currentPathIndex++;
                 if (currentPathIndex >= pathVectorList.Count)
@@ -53,24 +42,19 @@ public class CharacterMovementHandler : MonoBehaviour
     }
     private void StopMoving()
     {
-        state = State.Standing;
         currentPathIndex = -1;
+        onReachedPosition();
     }
 
     public Vector3 GetPosition()
     {
         return transform.position;
     }
-
-    public State GetState()
-    {
-        return state;
-    }
-
-    public void SetTargetPosition(Vector3 targetPosition)
+    public void SetTargetPosition(Vector3 targetPosition, Action onReachedPosition)
     {
         try
         {
+            this.onReachedPosition = onReachedPosition;
             var path = Pathfinding.Instance.GetPathStructure(GetPosition(), targetPosition);
             pathVectorList = path.vectorPathList;
         }

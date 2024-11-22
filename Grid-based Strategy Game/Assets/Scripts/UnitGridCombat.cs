@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using Utils.HealthSystemCM;
 
@@ -26,10 +27,14 @@ namespace GridCombat
         {
             characterMovementHandler = gameObject.GetComponent<CharacterMovementHandler>();
         }
-        public void MoveTo(Vector3 targetPos)
+        public void MoveTo(Vector3 targetPos, Action onComplete)
         {
             state = State.Walking;
-            characterMovementHandler.SetTargetPosition(targetPos + new Vector3(1, 1)); // Needs Action to set state back to normal after reaching destination)
+            characterMovementHandler.SetTargetPosition(targetPos + new Vector3(1, 1), () =>
+            {
+                state = State.Idle;
+                onComplete();
+            }); // Needs Action to set state back to normal after reaching destination)
         }
 
         public void TakeDamage(float damageTaken)
