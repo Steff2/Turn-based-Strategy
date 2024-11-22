@@ -152,6 +152,19 @@ public class BinaryTree
             }
 
             newChild.parentNode = parentNode;
+
+            if (parentNode.leftTreeNode == treeNode)
+            {
+                parentNode.leftTreeNode = newChild;
+                nodeCount--;
+                return;
+            }
+            else if (parentNode.rightTreeNode == treeNode)
+            {
+                parentNode.rightTreeNode = newChild;
+                nodeCount--;
+                return;
+            }
         }
         // There are leafs on both sides
         else
@@ -163,7 +176,6 @@ public class BinaryTree
             nodeCount--;
             return;
         }
-        nodeCount--;
     }
     private TreeNode GetLowestLeaf(TreeNode node, bool direction)
     {
