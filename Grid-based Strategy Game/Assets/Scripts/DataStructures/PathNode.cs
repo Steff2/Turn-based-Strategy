@@ -24,7 +24,7 @@ public class PathNode
     public int hCost;
     public int fCost;
 
-    public Boolean isWalkable = true;
+    public bool isWalkable = true;
 
     public PathNode(int _xPos, int _yPos)
     {
