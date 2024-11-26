@@ -1,15 +1,15 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class CharacterMovementHandler : MonoBehaviour
 {
+    Action onReachedPosition;
+
     private const float speed = 30f;
 
     private List<Vector3> pathVectorList;
-    private int currentPathIndex;
-
-    private bool isWalking = false;
+    private int currentPathIndex = -1;
 
     private void Start()
     {
@@ -22,20 +22,15 @@ public class CharacterMovementHandler : MonoBehaviour
     }
     private void HandleMovement()
     {
-        if (pathVectorList != null)
+        if (currentPathIndex != -1)
         {
 
-            Vector3 targetPosition = pathVectorList[currentPathIndex];
-            if (Vector3.Distance(transform.position, targetPosition) > 1f)
-            {
-                Vector3 moveDir = (targetPosition - transform.position).normalized;
+            Vector3 targetPosition = pathVectorList[currentPathIndex]; 
+            Vector3 moveDir = (targetPosition - transform.position).normalized;
 
-                float distanceBefore = Vector3.Distance(transform.position, targetPosition);
-                transform.position = transform.position + speed * Time.deltaTime * moveDir;
+            transform.position = transform.position + speed * Time.deltaTime * moveDir;
 
-                if(!isWalking) isWalking = true;
-            }
-            else
+            if (Vector3.Distance(transform.position, targetPosition) < 1f)
             {
                 currentPathIndex++;
                 if (currentPathIndex >= pathVectorList.Count)
@@ -47,30 +42,34 @@ public class CharacterMovementHandler : MonoBehaviour
     }
     private void StopMoving()
     {
-        pathVectorList = null;
-
-        isWalking = false;
+        currentPathIndex = -1;
+        onReachedPosition();
     }
 
     public Vector3 GetPosition()
     {
         return transform.position;
     }
-
-    public bool IsWalking()
+    public void SetTargetPosition(Vector3 targetPosition, Action onReachedPosition)
     {
-        return isWalking;
-    }
-
-    public void SetTargetPosition(Vector3 targetPosition)
-    {
-        currentPathIndex = 0;
-        Pathfinding.Instance.GetPath(GetPosition(), targetPosition);
-        pathVectorList = Pathfinding.Instance.pathVectorList;
-
-        if (pathVectorList != null && pathVectorList.Count > 1) 
+        try
         {
-            pathVectorList.RemoveAt(0);
+            this.onReachedPosition = onReachedPosition;
+            var path = Pathfinding.Instance.GetPathStructure(GetPosition(), targetPosition);
+            pathVectorList = path.vectorPathList;
+        }
+        catch(System.Exception e) 
+        { 
+            Debug.Log(e);
+        }
+
+        if (pathVectorList.Count > 0)
+        {
+            currentPathIndex = 1;
+        }
+        else
+        {
+            currentPathIndex = -1;
         }
     }
 }

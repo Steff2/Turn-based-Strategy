@@ -1,5 +1,3 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -11,37 +9,77 @@ using static UnityEditor.PlayerSettings;
 
 public class Pathfinding
 {
-    private int movementCost = 15;
+    public static Pathfinding Instance;
 
     public const int WALL_WEIGHT = 80000;
-    public static Pathfinding Instance { get; private set; }
 
-    private GameGrid<PathNode> grid;
-    private List<PathNode> openList;
+    private BinaryTree openListTree;
+    private int openListCount;
     private HashSet<PathNode> closedList;
     private PathNode[][] existingNodes;
 
-    private float cellSize;
-    private int cellWidth;
-    private int cellHeight;
-    private Vector3 worldOrigin;
-    public List<PathNode> pathNodeList;
-    public List<Vector3> pathVectorList;
 
-    public Pathfinding(int width, int height, float cellSize)
+    private float cellSize;
+    private int width, height;
+    private Vector3 worldOrigin;
+
+    private int movementCost = 15;
+    private bool targetFound;
+
+    public Pathfinding(Vector3 worldMinimum, Vector3 worldMaximum, float cellSize)
     {
         Instance = this;
 
-        this.cellWidth = width;
+        worldOrigin = worldMinimum;
         this.cellSize = cellSize;
-        this.cellHeight = height;
 
-        Initialize(width, height);
+        float worldWidth = worldMaximum.x - worldMaximum.x;
+        float worldHeight = worldMaximum.y - worldMaximum.y;
+
+        int width = Mathf.RoundToInt(worldWidth / cellSize);
+        int height = Mathf.RoundToInt(worldHeight / cellSize);
+        existingNodes = new PathNode[width][];
+        for (int i = 0; i < width; i++)
+        {
+            existingNodes[i] = new PathNode[height];
+        }
+        Initialize();
     }
 
-    public void Initialize(int mapWidth, int mapHeight)
+    public Pathfinding(int mapWidth, int mapHeight, float nodeSize, Vector3 worldOrigin)
     {
-        // Creates PathNodes
+        Instance = this;
+
+        this.cellSize = nodeSize;
+        this.worldOrigin = worldOrigin;
+
+        existingNodes = new PathNode[mapWidth][];
+        for (int i = 0; i < mapWidth; i++)
+        {
+            existingNodes[i] = new PathNode[mapHeight];
+        }
+        width = mapWidth;
+        height = mapHeight;
+
+        Initialize();
+    }
+    public void RaycastWalkable()
+    {
+        for (int i = 0; i < width; i++)
+        {
+            for (int j = 0; j < height; j++)
+            {
+                Vector3 nodeWorldPosition = existingNodes[i][j].GetWorldVector(worldOrigin, cellSize);
+                RaycastHit2D raycastHit = Physics2D.Raycast(nodeWorldPosition, Vector2.zero, 0f);
+                if (raycastHit.collider != null)
+                {
+                    existingNodes[i][j].SetWalkable(false);
+                }
+            }
+        }
+    }
+    public void Initialize()
+    {
         for (int x = 0; x < existingNodes.Length; x++)
         {
             for (int y = 0; y < existingNodes[x].Length; y++)
@@ -71,7 +109,7 @@ public class Pathfinding
         }
     }
 
-    public PathNode[][] GetMapNodes()
+    public PathNode[][] GetExistingNodes()
     {
         return existingNodes;
     }
@@ -82,63 +120,56 @@ public class Pathfinding
     }
     public List<PathNode> GetPath(Vector3 start, Vector3 end)
     {
-        start = start - worldOrigin;
-        end = end - worldOrigin;
-        start = start / cellSize;
-        end = end / cellSize;
-        var startMapPos = GetClosestValidPos(Mathf.RoundToInt(start.x), Mathf.RoundToInt(start.y));
-        var endMapPos = GetClosestValidPos(Mathf.RoundToInt(end.x), Mathf.RoundToInt(end.y));
-        return FindPath((int)startMapPos.x, (int)startMapPos.y, (int)endMapPos.x, (int)endMapPos.y);
-    }
-    public List<Vector3> FindPath(Vector3 startWorldPosition, Vector3 endWorldPosition)
-    {
-        grid.GetXY(startWorldPosition, out int startX, out int startY);
-        grid.GetXY(endWorldPosition, out int endX, out int endY);
+        start -= worldOrigin;
+        end -= worldOrigin;
+        start /= cellSize;
+        end /= cellSize;
+        var startVec = GetClosestValidPos(Mathf.FloorToInt(start.x), Mathf.FloorToInt(start.y));
+        var endVec = GetClosestValidPos(Mathf.FloorToInt(end.x), Mathf.FloorToInt(end.y));
+        return FindPath((int)startVec.x, (int)startVec.y, (int)endVec.x, (int)endVec.y);
 
-        List<PathNode> path = FindPath(startX, startY, endX, endY);
+    }
+    public List<PathNode> FindPath(Vector3 startWorldPosition, Vector3 endWorldPosition)
+    {
+        ConvertVectorPositionValidate(startWorldPosition, out int startX, out int startY);
+        ConvertVectorPositionValidate(endWorldPosition, out int endX, out int endY);
+
+        var path = FindPath(startX, startY, endX, endY);
         if(path == null)
         {
             return null;
         }
         else
         {
-            List<Vector3> vectorPath = new List<Vector3>();
-            foreach(PathNode pathNode in path)
-            {
-                vectorPath.Add(new Vector3(pathNode.xPos, pathNode.yPos) * grid.GetCellSize() + .5f * grid.GetCellSize() * new Vector3(1, 1));
-            }
-            return vectorPath;
+            return path;
         }
     }
-
     public List<PathNode> FindPath(int startX, int startY, int endX, int endY)
     {
-
+        List<PathNode> path = new List<PathNode>();
         PathNode currentNode = existingNodes[startX][startY];
         PathNode endNode = existingNodes[endX][endY];
 
-        openList = new List<PathNode>{ currentNode };
-        closedList = new HashSet<PathNode>();
+        currentNode.gCost = 0;
 
         CalculateAllHeuristics(endX, endY);
 
-        /*for (int x = 0; x < grid.GetWidth(); x++)
-        {
-            for (int y = 0; y < grid.GetHeight(); y++)
-            {
-                PathNode pathNode = grid.GetGridObject(x, y);
-                //pathNode.gCost = 99999999;
-                //pathNode.CalculateFCost();
-            }
-        }*/
+        openListTree = new BinaryTree();
+        openListCount = 1;
+        openListTree.AddNode(currentNode);
+        closedList = new HashSet<PathNode>();
+        targetFound = false;
+
+        // If the beginning is the target
         if (currentNode == endNode)
         {
             return new List<PathNode> { currentNode };
         }
 
-        while (openList.Count > 0)
+        int iterations = 0;
+        do
         {
-
+            iterations++;
             // Check the north node
             if (currentNode.moveNorth) DetermineNodeValues(currentNode, currentNode.north, endNode);
             // Check the east node
@@ -148,51 +179,122 @@ public class Pathfinding
             // Check the west node
             if (currentNode.moveWest) DetermineNodeValues(currentNode, currentNode.west, endNode);
 
-            currentNode = GetLowestFCostNode(openList);
-
-            openList.Remove(currentNode);
-            currentNode.isOnOpenList = false;
-            closedList.Add(currentNode);
-            currentNode.isOnClosedList = true;
-
-            if (currentNode == endNode)
+            if (!targetFound)
             {
-                openList.Add(currentNode);
-                return CalculatePath(endNode);
+                openListTree.RemoveNode(currentNode);
+                openListCount--;
+                currentNode.isOnOpenList = false;
+                closedList.Add(currentNode);
+                currentNode.isOnClosedList = true;
+
+                currentNode = openListTree.GetLowestValue();
+                // Target found
             }
+        } while (!targetFound && openListCount > 0 && iterations < 60000);
+        if (iterations >= 60000) Debug.Log("iteration overload");
+
+        if(targetFound)
+        {
+            path = CalculatePath(endNode);
+        } else
+        {
+            // No path
         }
 
-        //Out of nodes on the openList
-        return null;
+        return path;
     }
     private void DetermineNodeValues(PathNode currentNode, PathNode testNode, PathNode endNode)
     {
-        if (!closedList.Contains(testNode))
-        {
-            if (!openList.Contains(testNode))
-            {
-                if (!testNode.isWalkable)
-                {
-                    closedList.Add(testNode);
-                    return;
-                }
+        // Dont work on null nodes
+        if (testNode == null)
+            return;
 
+        // Check to see if the node is the target
+        if (testNode == endNode)
+        {
+            endNode.parent = currentNode;
+            targetFound = true;
+            return;
+        }
+        // If it is not traversable
+        if (!testNode.isWalkable)
+        {
+            return;
+        }
+
+        if (!testNode.isOnClosedList)
+        {
+            if (testNode.isOnOpenList)
+            {
                 int tentativeGCost = currentNode.gCost + testNode.weight + movementCost;
 
+                // Take the lower gCost between test and current node
                 if (tentativeGCost < testNode.gCost)
                 {
-                    testNode.Parent = currentNode;
+                    testNode.parent = currentNode;
                     testNode.gCost = tentativeGCost;
+                    openListTree.RemoveNode(testNode);
                     testNode.CalculateFCost();
-                    openList.Add(testNode);
-                    testNode.isOnOpenList = true;
+                    openListTree.AddNode(testNode);
+
                 }
             } else {
-                testNode.Parent = currentNode;
-                testNode.gCost = currentNode.gCost + testNode.weight + movementCost;
-                openList.Remove(testNode);
+                testNode.parent = currentNode;
+                testNode.gCost = currentNode.gCost + currentNode.weight + movementCost;
                 testNode.CalculateFCost();
-                openList.Add(testNode);
+                openListTree.AddNode(testNode);
+                testNode.isOnOpenList = true;
+                openListCount++;
+            }
+        }
+    }
+    public PathStructure GetPathStructure(Vector3 start, Vector3 end)
+    {
+        List<PathNode> pathNodeList = GetPath(start, end);
+        return new PathStructure(pathNodeList, worldOrigin, cellSize);
+    }
+    public Vector3 GetClosestValidPosition(Vector3 position)
+    {
+        int mapX, mapY;
+        ConvertVectorPositionValidate(position, out mapX, out mapY);
+        var closestValidMapPos = GetClosestValidPos(mapX, mapY);
+        PathNode pathNode = existingNodes[(int)closestValidMapPos.x][(int)closestValidMapPos.y];
+        return pathNode.GetWorldVector(worldOrigin, cellSize);
+    }
+    // Check out of bounds and correct if needed
+    private Vector3 GetClosestValidPos(int mapX, int mapY)
+    {
+        // Inside bounds
+        while (mapX < 0) mapX++;
+        while (mapY < 0) mapY++;
+        while (mapX >= width) mapX--;
+        while (mapY >= height) mapY--;
+
+        return new Vector3(mapX, mapY);
+    }
+    // Construct the path from all nodes
+    private List<PathNode> CalculatePath(PathNode endNode)
+    {
+        List<PathNode > pathNodes = new List<PathNode>{ endNode };
+        PathNode currentNode = endNode;
+        while(currentNode.parent != null)
+        {
+            pathNodes.Add(currentNode.parent);
+            currentNode = currentNode.parent;
+        }
+        pathNodes.Reverse();
+        return pathNodes;
+    }
+    // Initialize the pathnodes hCost
+    private void CalculateAllHeuristics(int endX, int endY)
+    {
+        int rows = height;
+        int cols = width;
+        for (int x = 0; x < cols; x++)
+        {
+            for (int y = 0; y < rows; y++)
+            {
+                CalculateManhattanDistance(existingNodes[x][y], x, y, endX, endY);
             }
         }
     }
@@ -203,62 +305,18 @@ public class Pathfinding
         currentNode.isOnOpenList = false;
         currentNode.isOnClosedList = false;
     }
-    private Vector3 GetClosestValidPos(int mapX, int mapY)
+    private void ConvertVectorPosition(Vector3 position, out int x, out int y)
     {
-        int width = cellWidth;
-        int height = cellHeight;
-        // Inside bounds
-        while (mapX < 0) mapX++;
-        while (mapY < 0) mapY++;
-        while (mapX >= width) mapX--;
-        while (mapY >= height) mapY--;
+        x = (int)((position.x - worldOrigin.x) / cellSize);
+        y = (int)((position.y - worldOrigin.y) / cellSize);
+    }
+    private void ConvertVectorPositionValidate(Vector3 position, out int x, out int y)
+    {
+        ConvertVectorPosition(position, out x, out y);
 
-        return new Vector3(mapX, mapY);
-    }
-    private List<PathNode> CalculatePath(PathNode endNode)
-    {
-        List<PathNode> path = new() { endNode };
-        PathNode currentNode = endNode;
-        while(currentNode.Parent != null)
-        {
-            path.Add(currentNode.Parent);
-            currentNode = currentNode.Parent;
-        }
-        path.Reverse();
-        PathRoute(path, worldOrigin, cellSize);
-        return path;
-    }
-    private void CalculateAllHeuristics(int endX, int endY)
-    {
-        int rows = cellHeight;
-        int cols = cellWidth;
-        for (int x = 0; x < cols; x++)
-        {
-            for (int y = 0; y < rows; y++)
-            {
-                CalculateManhattanDistance(existingNodes[x][y], x, y, endX, endY);
-            }
-        }
-    }
-    private PathNode GetLowestFCostNode(List<PathNode> pathNodeList)
-    {
-        PathNode lowestFCostNode = pathNodeList[0];
-        for (int i = 0; i < pathNodeList.Count; i++)
-        {
-            if (pathNodeList[i].fCost < lowestFCostNode.fCost)
-            {
-                lowestFCostNode = pathNodeList[i];
-            }
-        }
-        return lowestFCostNode;
-    }
-    public void PathRoute(List<PathNode> pathNodeList, Vector3 worldOrigin, float cellSize)
-    {
-        this.pathNodeList = pathNodeList;
-        pathVectorList = new List<Vector3>();
-        foreach (PathNode pathNode in pathNodeList)
-        {
-            pathVectorList.Add(pathNode.GetWorldVector(worldOrigin, cellSize));
-        }
+        if (x < 0) x = 0;
+        if (y < 0) y = 0;
+        if (x >= width) x = width - 1;
+        if (y >= height) y = height - 1;
     }
 }
