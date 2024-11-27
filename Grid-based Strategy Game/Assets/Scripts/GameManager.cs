@@ -22,6 +22,8 @@ namespace GridCombat
             grid = new GameGrid<CombatGridSystem.CombatGridObject>(mapWidth, mapHeight, cellSize, origin, (GameGrid<CombatGridSystem.CombatGridObject> g, int x, int y) => new CombatGridSystem.CombatGridObject(g, x, y));
             pathfindingGrid = new Pathfinding(mapWidth, mapHeight, cellSize, Vector3.zero);
 
+            pathfindingGrid.RaycastWalkable();
+
         }
 
         // Start is called before the first frame update
