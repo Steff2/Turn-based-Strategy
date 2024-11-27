@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -117,6 +118,55 @@ public class Pathfinding
     public PathNode GetNode(int x, int y)
     {
         return existingNodes[x][y];
+    }
+    public PathStructure ShortcutPath(Vector3 startWorldPosition, Vector3 endWorldPosition)
+    {
+        ConvertVectorPositionValidate(startWorldPosition, out int startX, out int startY);
+        ConvertVectorPositionValidate(endWorldPosition, out int endX, out int endY);
+
+        var path = FindPath(startX, startY, endX, endY);
+
+        if (path == null) return null;
+
+        var startIndex = 0;
+        while (startIndex < path.Count - 2)
+        {
+            var currentNodeVector = path[startIndex].GetWorldVector(worldOrigin, cellSize);
+            var nextNodeVector = path[startIndex + 1].GetWorldVector(worldOrigin, cellSize);
+            var secondNextNodeVector = path[startIndex + 2].GetWorldVector(worldOrigin, cellSize);
+
+            if ((nextNodeVector - currentNodeVector).normalized == (secondNextNodeVector - currentNodeVector).normalized)
+            {
+                path.Remove(path[startIndex + 1]);
+            }
+
+            startIndex++;
+        }
+
+        return GetPathStructure(path);
+    }
+    public PathStructure ShortcutPath(int startX, int startY, int endX, int endY)
+    {
+        var path = FindPath(startX, startY, endX, endY);
+
+        if (path == null) return null;
+        
+        var startIndex = 0;
+        while (startIndex < path.Count - 2)
+        {
+            var currentNodeVector = path[startIndex].GetWorldVector(worldOrigin, cellSize);
+            var nextNodeVector = path[startIndex + 1].GetWorldVector(worldOrigin, cellSize);
+            var secondNextNodeVector = path[startIndex + 2].GetWorldVector(worldOrigin, cellSize);
+
+            if ((nextNodeVector - currentNodeVector).normalized == (secondNextNodeVector - currentNodeVector).normalized)
+            {
+                path.Remove(path[startIndex + 1]);
+            }
+
+            startIndex++;
+        }
+
+        return GetPathStructure(path);
     }
     public List<PathNode> GetPath(Vector3 start, Vector3 end)
     {
@@ -253,6 +303,10 @@ public class Pathfinding
         List<PathNode> pathNodeList = GetPath(start, end);
         return new PathStructure(pathNodeList, worldOrigin, cellSize);
     }
+    public PathStructure GetPathStructure(List<PathNode> path)
+    {
+        return new PathStructure(path, worldOrigin, cellSize);
+    }
     public Vector3 GetClosestValidPosition(Vector3 position)
     {
         int mapX, mapY;
@@ -282,6 +336,7 @@ public class Pathfinding
             pathNodes.Add(currentNode.parent);
             currentNode = currentNode.parent;
         }
+        pathNodes.Remove(currentNode);
         pathNodes.Reverse();
         return pathNodes;
     }
@@ -318,5 +373,22 @@ public class Pathfinding
         if (y < 0) y = 0;
         if (x >= width) x = width - 1;
         if (y >= height) y = height - 1;
+    }
+    public bool IsWalkable(int x, int y)
+    {
+        return existingNodes[x][y].weight != WALL_WEIGHT;
+    }
+
+    public bool IsInBoundaries(int mapX, int mapY)
+    {
+        // Inside bounds
+        if (mapX < 0 || mapY < 0 || mapX >= width || mapY >= height)
+        {
+            return false;
+        }
+        else
+        {
+            return true;
+        }
     }
 }
