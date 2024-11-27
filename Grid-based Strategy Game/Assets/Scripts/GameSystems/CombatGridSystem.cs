@@ -7,7 +7,7 @@ namespace GridCombat
 {
     public class CombatGridSystem : MonoBehaviour
     {
-        private const int MAXMOVEMENTDISTANCE = 6;
+        private const int MAXMOVEMENTDISTANCE = 4;
         public enum State
         {
             Idle,
@@ -40,15 +40,23 @@ namespace GridCombat
             {
                 for (int y = 0; y < grid.GetHeight(); y++)
                 {
-                    grid.GetGridObject(x, y).SetOccupancy(false);
+                    grid.GetGridObject(x, y).SetTraversable(false);
                 }
             }
 
             for (int x = unitX - MAXMOVEMENTDISTANCE; x <= unitX + MAXMOVEMENTDISTANCE; x++)
             {
-                for(int y = unitY - MAXMOVEMENTDISTANCE; y <= unitY + MAXMOVEMENTDISTANCE; y++)
+                for (int y = unitY - MAXMOVEMENTDISTANCE; y <= unitY + MAXMOVEMENTDISTANCE; y++)
                 {
-                    // TODO logic for turn based movement
+                    if (!gridPathfinding.IsInBoundaries(x, y)) { continue; }
+
+                    if (!gridPathfinding.IsWalkable(x, y)) { continue; }
+
+                    var path = gridPathfinding.ShortcutPath(unitX, unitY, x, y);
+                    if (path.vectorPathList == null || path.vectorPathList.Count > MAXMOVEMENTDISTANCE)
+                    { continue; }
+
+                    grid.GetGridObject(x, y).SetTraversable(true);
                 }
             }
         }
@@ -65,15 +73,22 @@ namespace GridCombat
                         CombatGridObject gridObject = grid.GetGridObject(UtilsClass.GetMouseWorldPosition());
 
                         if (gridObject.GetUnitGridCombat() != null)
-                        { 
-                            unitGridCombat.AttackUnit(unitGridCombat, ())
+                        {
+                            state = State.Waiting;
+
+                            unitGridCombat.AttackUnit(unitGridCombat, () =>
+                            {
+                                state = State.Idle;
+                                ManageMovement();
+                            });
                         }
 
-                        if (gridObject.GetOccupied())
+                        if (gridObject.GetTraversable())
                         {
                             state = State.Walking;
                             unitGridCombat.MoveTo(GameUtils.GetMouseWorldPosition(), () => {
                                 state = State.Idle;
+                                ManageMovement();
                             });
                         }
                     }
@@ -94,7 +109,7 @@ namespace GridCombat
             private int x;
             private int y;
             private UnitGridCombat unitCombatObject;
-            private bool isOccupied = false;
+            private bool isTraversable = false;
 
             public CombatGridObject(GameGrid<CombatGridObject> grid, int x, int y)
             {
@@ -114,13 +129,13 @@ namespace GridCombat
             {
                 unitCombatObject = null;
             }
-            public void SetOccupancy(bool set)
+            public void SetTraversable(bool set)
             {
-                isOccupied = set;
+                isTraversable = set;
             }
-            public bool GetOccupied()
+            public bool GetTraversable()
             {
-                return isOccupied;
+                return isTraversable;
             }
         }
     }
