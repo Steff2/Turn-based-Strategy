@@ -55,7 +55,7 @@ public class CharacterMovementHandler : MonoBehaviour
         try
         {
             this.onReachedPosition = onReachedPosition;
-            var path = Pathfinding.Instance.GetPathStructure(GetPosition(), targetPosition);
+            var path = Pathfinding.Instance.ShortcutPath(GetPosition(), targetPosition);
             pathVectorList = path.vectorPathList;
         }
         catch(System.Exception e) 
@@ -65,7 +65,7 @@ public class CharacterMovementHandler : MonoBehaviour
 
         if (pathVectorList.Count > 0)
         {
-            currentPathIndex = 1;
+            currentPathIndex = 0;
         }
         else
         {
