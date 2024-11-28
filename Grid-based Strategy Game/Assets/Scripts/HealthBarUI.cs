@@ -1,9 +1,5 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Utils.HealthSystemCM
 {
@@ -23,8 +19,6 @@ namespace Utils.HealthSystemCM
                 SetHealthSystem(healthSystem);
             }
         }
-
-
         private void SetHealthSystem(HealthSystem healthSystem)
         {
             if(this.healthSystem != null)
@@ -37,25 +31,14 @@ namespace Utils.HealthSystemCM
 
             healthSystem.OnHealthChanged += HealthSystem_OnHealthChanged;
         }
-
-
         private void HealthSystem_OnHealthChanged(object sender, System.EventArgs e)
         {
             UpdateHealthBar();
         }
-
-
         private void UpdateHealthBar()
         {
             textMesh.text = healthSystem.GetHealth() + "/" + healthSystem.GetMaxHealth();
         }
-
-
-        private void OnDestroy()
-        {
-            healthSystem.OnHealthChanged -= HealthSystem_OnHealthChanged;
-        }
-
 
     }
 
