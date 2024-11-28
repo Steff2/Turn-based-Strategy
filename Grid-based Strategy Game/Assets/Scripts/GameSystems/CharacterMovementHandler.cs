@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class CharacterMovementHandler : MonoBehaviour
 {
+    [SerializeField] Vector3 startPos;
+
     Action onReachedPosition;
 
     private const float speed = 30f;
@@ -11,11 +13,10 @@ public class CharacterMovementHandler : MonoBehaviour
     private List<Vector3> pathVectorList;
     private int currentPathIndex = -1;
 
-    private void Start()
+    private void Awake()
     {
-        transform.position = new Vector3(5, 5, 0);
+        transform.position = startPos;
     }
-
     private void Update()
     {
         HandleMovement();
