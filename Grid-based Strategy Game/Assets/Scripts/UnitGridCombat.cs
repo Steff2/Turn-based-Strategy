@@ -8,7 +8,7 @@ namespace GridCombat
     {
         [SerializeField] private Team team;
 
-        State state;
+        //State state;
         public enum Team
         {
             Red,
@@ -21,31 +21,38 @@ namespace GridCombat
             Idle
         }
         
-        //private HealthSystem healthSystem;
+        private HealthSystem healthSystem;
+        private Usable_Bar healthBar;
         private CharacterMovementHandler characterMovementHandler;
 
         private void Awake()
         {
             characterMovementHandler = gameObject.GetComponent<CharacterMovementHandler>();
-            //healthSystem = new HealthSystem(100);
-            //healthBar = new World_Bar(transform, new Vector3(0, 10), new Vector3(10, 1.3f), Color.grey, Color.red, 1f, 10000, new World_Bar.Outline { color = Color.black, size = .5f });
-            //healthSystem.OnHealthChanged += HealthSystem_OnHealthChanged;
+            healthSystem = new HealthSystem(100);
+            healthBar = new Usable_Bar(transform, new Vector3(0, 10), new Vector3(10, 1.3f), Color.grey, Color.red, 1f, 10000, new Usable_Bar.Outline { color = Color.black, size = .5f });
+            healthSystem.OnHealthChanged += HealthSystem_OnHealthChanged;
         }
+
+        private void HealthSystem_OnHealthChanged(object sender, EventArgs e)
+        {
+            healthBar.SetSize(healthSystem.GetHealthNormalized());
+        }
+
         public void MoveTo(Vector3 targetPos, Action onComplete)
         {
-            state = State.Walking;
+            //state = State.Walking;
             characterMovementHandler.SetTargetPosition(targetPos + new Vector3(1, 1), () =>
             {
-                state = State.Idle;
+                //state = State.Idle;
                 onComplete();
             });
         }
         public void AttackUnit(UnitGridCombat unitGridCombat, Action onComplete)
         {
-            state = State.Attacking;
+            //state = State.Attacking;
             Strike(unitGridCombat, () =>
             {
-                state = State.Idle;
+                //state = State.Idle;
                 onComplete();
             });
         }
@@ -56,12 +63,16 @@ namespace GridCombat
         }
         public void TakeDamage(float damageTaken)
         {
-            //healthSystem.Damage(damageTaken);
+            healthSystem.Damage(damageTaken);
         }
-        /*public bool IsDead()
+        public bool IsDead()
         {
             return healthSystem.IsDead();
-        }*/
+        }
+        public bool CheckForEnemy(UnitGridCombat testSubject)
+        {
+            return testSubject.GetTeam() == team;
+        }
         public Vector3 GetPosition()
         {
             return transform.position;
