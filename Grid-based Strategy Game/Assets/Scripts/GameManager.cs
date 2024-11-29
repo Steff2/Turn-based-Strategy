@@ -8,6 +8,7 @@ namespace GridCombat
 
         private GameGrid<CombatGridSystem.CombatGridObject> grid;
         private Pathfinding pathfindingGrid;
+        new Camera camera;
 
         private void Awake()
         {
@@ -24,19 +25,21 @@ namespace GridCombat
 
             pathfindingGrid.RaycastWalkable();
 
-        }
-
-        // Start is called before the first frame update
-        private void Start()
-        {
-        }
-        private void HandleCameraMovement()
-        {
-            var camera = Camera.main;
+            camera = Camera.main;
 
             var gridSizeVector = grid.GetWorldPosition(grid.GetWidth(), grid.GetHeight());
             camera.transform.position = new Vector3(gridSizeVector.x / 2, gridSizeVector.y / 2, -10);
             camera.orthographicSize = Mathf.Max(gridSizeVector.x, gridSizeVector.y) * 0.20f + 10;
+
+        }
+
+        // Start is called before the first frame update
+        private void Update()
+        {
+            HandleCameraMovement();
+        }
+        private void HandleCameraMovement()
+        {
 
             Vector3 moveDir = new Vector3(0, 0);
             if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow))
