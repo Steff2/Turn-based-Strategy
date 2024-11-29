@@ -1,8 +1,5 @@
-using System;
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using static UnityEditor.PlayerSettings;
 
 
 // TODO - Make class for holding a found path to be used by CharacterMovementHandler
@@ -377,6 +374,22 @@ public class Pathfinding
     public bool IsWalkable(int x, int y)
     {
         return existingNodes[x][y].weight != WALL_WEIGHT;
+    }
+
+    public void SetWeight(int x, int y, int weight)
+    {
+        existingNodes[x][y].SetWeight(weight);
+    }
+
+    public void SetAllWeight(int weight)
+    {
+        for (int x = 0; x < existingNodes.Length; x++)
+        {
+            for (int y = 0; y < existingNodes[x].Length; y++)
+            {
+                existingNodes[x][y].SetWeight(weight);
+            }
+        }
     }
 
     public bool IsInBoundaries(int mapX, int mapY)
