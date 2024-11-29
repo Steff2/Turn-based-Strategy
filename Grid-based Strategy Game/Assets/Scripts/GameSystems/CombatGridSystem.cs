@@ -1,7 +1,9 @@
 using CodeMonkey.Utils;
+using System;
+using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 using Utils;
-using Utils.HealthSystemCM;
 
 namespace GridCombat
 {
@@ -15,17 +17,87 @@ namespace GridCombat
             Waiting
         }
 
+        [SerializeField] private UnitGridCombat[] unitGridCombatArray;
+
         private State state;
 
-        [SerializeField] UnitGridCombat unitGridCombat;
+        private List<UnitGridCombat> redTeamList;
+        private List<UnitGridCombat> blueTeamList;
+
+        private UnitGridCombat activeUnit;
+
+        private int redTeamIndex = -1;
+        private int blueTeamIndex = -1;
+
+        private bool hasAttacked = false;
+        private bool hasMoved = false;
+
+        Renderer cubeRenderer;
+        Color color;
+
         // Start is called before the first frame update
         void Awake()
         {
             state = State.Idle;
+
         }
         private void Start()
         {
+            redTeamList = new List<UnitGridCombat>();
+            blueTeamList = new List<UnitGridCombat>();
+
+            foreach (var unit in unitGridCombatArray)
+            {
+                GameManager.Instance.GetGrid().GetGridObject(unit.GetPosition()).SetUnitGridObject(unit);
+
+                if (unit.GetTeam() == UnitGridCombat.Team.Red) 
+                { 
+                    redTeamList.Add(unit);
+                }
+                else 
+                { 
+                    blueTeamList.Add(unit);
+                }
+            }
+
+            SelectNextActive(UnitGridCombat.Team.Blue);
             ManageMovement();
+        }
+        private void SelectNextActive(UnitGridCombat.Team team)
+        {
+            var oldActive = activeUnit;
+            // Check current unit team and take one from the opposite
+            if (team == UnitGridCombat.Team.Red)
+            {
+                Debug.Log("Blue Turn");
+                blueTeamIndex = (blueTeamIndex + 1) % blueTeamList.Count;
+
+                if (blueTeamList[blueTeamIndex] == null || blueTeamList[blueTeamIndex].IsDead())
+                {
+                    SelectNextActive(team);
+                }
+                else
+                {
+                    activeUnit = blueTeamList[blueTeamIndex];
+                }
+            }
+            else
+            {
+                Debug.Log("Red Turn");
+                redTeamIndex = (redTeamIndex + 1) % redTeamList.Count;
+
+                if (redTeamList[redTeamIndex] == null || redTeamList[redTeamIndex].IsDead())
+                {
+                    SelectNextActive(team);
+                }
+                else
+                {
+                    activeUnit = redTeamList[redTeamIndex]; 
+                }
+            }
+
+            hasAttacked = false;
+            hasMoved = false;
         }
         private void ManageMovement()
         {
@@ -33,9 +105,9 @@ namespace GridCombat
             Pathfinding gridPathfinding = GameManager.Instance.GetPathfinding();
 
             // Get Unit Grid Position X, Y
-            grid.GetXY(unitGridCombat.GetPosition(), out int unitX, out int unitY);
+            grid.GetXY(activeUnit.GetPosition(), out int unitX, out int unitY);
 
-            // Reset Entire Grid ValidMovePositions
+            // Reset Entire Grid Traversables
             for (int x = 0; x < grid.GetWidth(); x++)
             {
                 for (int y = 0; y < grid.GetHeight(); y++)
@@ -44,6 +116,7 @@ namespace GridCombat
                 }
             }
 
+            // Mark all eligible tiles in range as traversable
             for (int x = unitX - MAXMOVEMENTDISTANCE; x <= unitX + MAXMOVEMENTDISTANCE; x++)
             {
                 for (int y = unitY - MAXMOVEMENTDISTANCE; y <= unitY + MAXMOVEMENTDISTANCE; y++)
@@ -72,37 +145,75 @@ namespace GridCombat
                         GameGrid<CombatGridObject> grid = GameManager.Instance.GetGrid();
                         CombatGridObject gridObject = grid.GetGridObject(UtilsClass.GetMouseWorldPosition());
 
+                        // If the Space has a unit
                         if (gridObject.GetUnitGridCombat() != null)
                         {
+
+                            // If the unit is an enemy
+                            if (!activeUnit.CheckForEnemy(gridObject.GetUnitGridCombat())) return;
+
+                            // If active unit has attacked
+                            if (hasAttacked) return;
+
                             state = State.Waiting;
 
-                            unitGridCombat.AttackUnit(unitGridCombat, () =>
+                            activeUnit.AttackUnit(gridObject.GetUnitGridCombat(), () =>
                             {
                                 state = State.Idle;
+                                hasAttacked = true;
                                 ManageMovement();
+                                TestTurnOver();
                             });
+                            break;
                         }
-
+                        // If you can move to the tile
                         if (gridObject.GetTraversable())
                         {
-                            state = State.Walking;
-                            unitGridCombat.MoveTo(GameUtils.GetMouseWorldPosition(), () => {
+                            // If the unit has already moved
+                            if (hasMoved) return;
+
+                            state = State.Waiting;
+
+                            // Remove Unit from current Grid Object
+                            grid.GetGridObject(activeUnit.GetPosition()).ClearUnitCombatObject();
+                            // Set Unit on target Grid Object
+                            gridObject.SetUnitGridObject(activeUnit);
+
+                            activeUnit.MoveTo(GameUtils.GetMouseWorldPosition(), () => {
                                 state = State.Idle;
+                                hasMoved = true;
                                 ManageMovement();
+                                TestTurnOver();
                             });
                         }
                     }
+                    // End turn manually
+                    if (Input.GetKeyDown(KeyCode.Space))
+                    {
+                        TurnOver();
+                    }
                     break;
-
 
                 case State.Walking:
                     break;
             }
         }
-        public void GetAttackTarget(Vector3 attackTargetPosition)
-        {
 
+        private void TestTurnOver()
+        {
+            if(hasAttacked && hasMoved)
+            {
+                TurnOver();
+            }
         }
+        private void TurnOver()
+        {
+            SelectNextActive(activeUnit.GetTeam());
+            ManageMovement();
+        }
+
+
+
         public class CombatGridObject
         {
             private GameGrid<CombatGridObject> grid;
