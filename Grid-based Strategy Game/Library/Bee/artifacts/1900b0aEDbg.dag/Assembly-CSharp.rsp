@@ -407,7 +407,6 @@
 "Assets/Scripts/HealthBarUI.cs"
 "Assets/Scripts/UnitGridCombat.cs"
 "Assets/Scripts/Usable_Bar.cs"
-"Assets/Scripts/Weapon.cs"
 -langversion:9.0
 
 /deterministic
