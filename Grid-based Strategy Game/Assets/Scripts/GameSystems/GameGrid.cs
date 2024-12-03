@@ -66,8 +66,8 @@ public class GameGrid<TGridObject>
 
     public void GetXY(Vector3 worldPosition, out int x, out int y)
     {
-        x = Mathf.FloorToInt((worldPosition - originPosition).x / cellSize);
-        y = Mathf.FloorToInt((worldPosition - originPosition).y / cellSize);
+        x = Mathf.RoundToInt((worldPosition - originPosition).x / cellSize);
+        y = Mathf.RoundToInt((worldPosition - originPosition).y / cellSize);
     }
 
     public void SetGridObject(int x, int y, TGridObject value)
