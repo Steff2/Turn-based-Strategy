@@ -32,9 +32,6 @@ namespace GridCombat
         private bool hasAttacked = false;
         private bool hasMoved = false;
 
-        Renderer cubeRenderer;
-        Color color;
-
         // Start is called before the first frame update
         void Awake()
         {
@@ -65,7 +62,6 @@ namespace GridCombat
         }
         private void SelectNextActive(UnitGridCombat.Team team)
         {
-            var oldActive = activeUnit;
             // Check current unit team and take one from the opposite
             if (team == UnitGridCombat.Team.Red)
             {
@@ -151,6 +147,9 @@ namespace GridCombat
 
                             // If the unit is an enemy
                             if (!activeUnit.CheckForEnemy(gridObject.GetUnitGridCombat())) return;
+
+                            // If the enemy is in range
+                            if (!activeUnit.IsInAttackRange(gridObject.GetUnitGridCombat())) return;
 
                             // If active unit has attacked
                             if (hasAttacked) return;
