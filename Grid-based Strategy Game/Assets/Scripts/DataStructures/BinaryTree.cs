@@ -38,13 +38,13 @@ public class BinaryTree
             return treeNode;
         }
         
-        if (root.pathNode.fCost < pathNode.fCost)
+        if (treeNode.pathNode.fCost <= pathNode.fCost)
         {
-            return Search(root.rightTreeNode, pathNode);
+            return Search(treeNode.rightTreeNode, pathNode);
         }
         else
         {
-            return Search(root.leftTreeNode, pathNode);
+            return Search(treeNode.leftTreeNode, pathNode);
         }
     }
     public void AddNode(PathNode pathNode)
