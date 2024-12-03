@@ -87,7 +87,7 @@ namespace GridCombat
             onStrikeComplete();
         }
 
-        public bool IsInRange(UnitGridCombat target)
+        public bool IsInAttackRange(UnitGridCombat target)
         {
             if (Vector3.Distance(gameObject.transform.position, target.gameObject.transform.position) < activeAttackRange)
             {
