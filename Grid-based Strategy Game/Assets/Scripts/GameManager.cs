@@ -6,6 +6,7 @@ namespace GridCombat
     {
         public static GameManager Instance { get; private set; }
 
+        [SerializeField] TilemapManager gameTileMaps;
         private GameGrid<CombatGridSystem.CombatGridObject> grid;
         private Pathfinding pathfindingGrid;
         new Camera camera;
@@ -70,6 +71,11 @@ namespace GridCombat
         public Pathfinding GetPathfinding() 
         { 
             return pathfindingGrid;
+        }
+
+        public TilemapManager GetTileMaps()
+        {
+            return gameTileMaps;
         }
     }
 }
