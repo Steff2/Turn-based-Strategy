@@ -48,7 +48,7 @@ namespace Utils.HealthSystemCM
             }
 
             OnHealthChanged.Invoke(this, EventArgs.Empty);
-            OnDamaged.Invoke(this, EventArgs.Empty);
+            //OnDamaged.Invoke(this, EventArgs.Empty);
 
             if (health <= 0)
             {
@@ -58,7 +58,7 @@ namespace Utils.HealthSystemCM
 
         private void Die()
         {
-            OnDeath.Invoke(this, EventArgs.Empty);
+            //OnDeath.Invoke(this, EventArgs.Empty);
         }
 
         public bool IsDead()

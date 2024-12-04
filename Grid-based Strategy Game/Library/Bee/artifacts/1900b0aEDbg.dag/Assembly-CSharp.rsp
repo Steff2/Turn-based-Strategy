@@ -403,6 +403,7 @@
 "Assets/Scripts/GameSystems/HealthSystem.cs"
 "Assets/Scripts/GameSystems/HealthSystemComponent.cs"
 "Assets/Scripts/GameSystems/Pathfinding.cs"
+"Assets/Scripts/GameSystems/TilemapManager.cs"
 "Assets/Scripts/GameUtils.cs"
 "Assets/Scripts/HealthBarUI.cs"
 "Assets/Scripts/UnitGridCombat.cs"

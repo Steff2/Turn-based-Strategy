@@ -41,6 +41,12 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
-  - name: smth
+  - name: Units
     uniqueID: 1305929899
+    locked: 0
+  - name: Ground
+    uniqueID: 4137143439
+    locked: 0
+  - name: Obstacles
+    uniqueID: 3079530047
     locked: 0
