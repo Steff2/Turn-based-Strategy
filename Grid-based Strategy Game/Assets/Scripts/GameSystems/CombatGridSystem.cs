@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 using Utils;
 
 namespace GridCombat
@@ -17,6 +18,7 @@ namespace GridCombat
             Waiting
         }
 
+        [SerializeField] private Grid tileMapGrid;
         [SerializeField] private UnitGridCombat[] unitGridCombatArray;
 
         private State state;
@@ -32,6 +34,13 @@ namespace GridCombat
         private bool hasAttacked = false;
         private bool hasMoved = false;
 
+        private GameGrid<CombatGridObject> grid;
+        private Pathfinding gridPathfinding;
+        private TilemapManager tilemapManager;
+
+        private Vector3Int[] movementTilePositions;
+        private TileBase[] movementTileArray;
+
         // Start is called before the first frame update
         void Awake()
         {
@@ -42,6 +51,12 @@ namespace GridCombat
         {
             redTeamList = new List<UnitGridCombat>();
             blueTeamList = new List<UnitGridCombat>();
+            grid = GameManager.Instance.GetGrid();
+            gridPathfinding = GameManager.Instance.GetPathfinding();
+            tilemapManager = GameManager.Instance.GetTileMaps();
+
+            movementTilePositions = new Vector3Int[(MAXMOVEMENTDISTANCE + 1) * (MAXMOVEMENTDISTANCE + 1)];
+            movementTileArray = new TileBase[movementTilePositions.Length];
 
             foreach (var unit in unitGridCombatArray)
             {
@@ -97,8 +112,6 @@ namespace GridCombat
         }
         private void ManageMovement()
         {
-            GameGrid<CombatGridObject> grid = GameManager.Instance.GetGrid();
-            Pathfinding gridPathfinding = GameManager.Instance.GetPathfinding();
 
             // Get Unit Grid Position X, Y
             grid.GetXY(activeUnit.GetPosition(), out int unitX, out int unitY);
@@ -109,15 +122,21 @@ namespace GridCombat
                 for (int y = 0; y < grid.GetHeight(); y++)
                 {
                     grid.GetGridObject(x, y).SetTraversable(false);
+                    tilemapManager.tilemaps[2].SetTile(new Vector3Int(x, y, 0), null);
                 }
             }
 
+            int i = 0;
             // Mark all eligible tiles in range as traversable
             for (int x = unitX - MAXMOVEMENTDISTANCE; x <= unitX + MAXMOVEMENTDISTANCE; x++)
             {
                 for (int y = unitY - MAXMOVEMENTDISTANCE; y <= unitY + MAXMOVEMENTDISTANCE; y++)
                 {
                     if (!gridPathfinding.IsInBoundaries(x, y)) { continue; }
+
+                    // Cache the change in movement tiles position for further use
+                    movementTilePositions[i] = new Vector3Int(x, y);
+                    i++;
 
                     if (!gridPathfinding.IsWalkable(x, y)) { continue; }
 
@@ -126,6 +145,9 @@ namespace GridCombat
                     { continue; }
 
                     grid.GetGridObject(x, y).SetTraversable(true);
+                    tilemapManager.tilemaps[2].SetTile(new Vector3Int(x, y, 0), tilemapManager.movementTiles[0]);
+
+                    movementTileArray[i - 1] = null;
                 }
             }
         }
@@ -173,6 +195,8 @@ namespace GridCombat
 
                             state = State.Waiting;
 
+                            ResetMovementTiles();
+
                             // Remove Unit from current Grid Object
                             grid.GetGridObject(activeUnit.GetPosition()).ClearUnitCombatObject();
                             // Set Unit on target Grid Object
@@ -181,7 +205,6 @@ namespace GridCombat
                             activeUnit.MoveTo(GameUtils.GetMouseWorldPosition(), () => {
                                 state = State.Idle;
                                 hasMoved = true;
-                                ManageMovement();
                                 TestTurnOver();
                             });
                         }
@@ -195,6 +218,16 @@ namespace GridCombat
 
                 case State.Walking:
                     break;
+            }
+        }
+        private void ResetMovementTiles()
+        {
+            tilemapManager.SetTilemapSprites(2, movementTilePositions, movementTileArray);
+
+            for (int i = 0; i < movementTilePositions.Length; i++)
+            {
+                movementTilePositions[i] = default;
+                movementTileArray[i] = null;
             }
         }
 
