@@ -9,9 +9,9 @@ namespace Utils.HealthSystemCM
     {
 
         public event EventHandler OnHealthChanged;
-        public event EventHandler OnMaxHealthChanged;
-        public event EventHandler OnDamaged;
-        public event EventHandler OnHealed;
+        //public event EventHandler OnMaxHealthChanged;
+        //public event EventHandler OnDamaged;
+        //public event EventHandler OnHealed;
         public event EventHandler OnDeath;
 
         private float maxHealth;
