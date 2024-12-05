@@ -55,7 +55,7 @@ namespace GridCombat
             gridPathfinding = GameManager.Instance.GetPathfinding();
             tilemapManager = GameManager.Instance.GetTileMaps();
 
-            movementTilePositions = new Vector3Int[(MAXMOVEMENTDISTANCE + 1) * (MAXMOVEMENTDISTANCE + 1)];
+            movementTilePositions = new Vector3Int[(MAXMOVEMENTDISTANCE * 2 + 1) * (MAXMOVEMENTDISTANCE * 2 + 1)];
             movementTileArray = new TileBase[movementTilePositions.Length];
 
             foreach (var unit in unitGridCombatArray)
@@ -116,6 +116,8 @@ namespace GridCombat
             // Get Unit Grid Position X, Y
             grid.GetXY(activeUnit.GetPosition(), out int unitX, out int unitY);
 
+            //Debug.Log("Unit Coords: " + unitX +  ", " + unitY);
+
             // Reset Entire Grid Traversables
             for (int x = 0; x < grid.GetWidth(); x++)
             {
@@ -130,8 +132,15 @@ namespace GridCombat
             // Mark all eligible tiles in range as traversable
             for (int x = unitX - MAXMOVEMENTDISTANCE; x <= unitX + MAXMOVEMENTDISTANCE; x++)
             {
+                //Debug.Log("iteration on X: " + i);
+                //Debug.Log("X: " + x);
+
+
                 for (int y = unitY - MAXMOVEMENTDISTANCE; y <= unitY + MAXMOVEMENTDISTANCE; y++)
                 {
+                    //Debug.Log("iteration on Y: " + i);
+                    //Debug.Log("Y: " + y);
+
                     if (!gridPathfinding.IsInBoundaries(x, y)) { continue; }
 
                     // Cache the change in movement tiles position for further use
@@ -140,11 +149,13 @@ namespace GridCombat
 
                     if (!gridPathfinding.IsWalkable(x, y)) { continue; }
 
-                    var path = gridPathfinding.ShortcutPath(unitX, unitY, x, y);
+                    var path = gridPathfinding.GetPathStructure(activeUnit.GetPosition(), grid.GetWorldPosition(x, y));
                     if (path.vectorPathList == null || path.vectorPathList.Count > MAXMOVEMENTDISTANCE)
                     { continue; }
 
                     grid.GetGridObject(x, y).SetTraversable(true);
+
+                    // Set movement indicator tiles
                     tilemapManager.tilemaps[2].SetTile(new Vector3Int(x, y, 0), tilemapManager.movementTiles[0]);
 
                     movementTileArray[i - 1] = null;
@@ -163,6 +174,11 @@ namespace GridCombat
                         GameGrid<CombatGridObject> grid = GameManager.Instance.GetGrid();
                         CombatGridObject gridObject = grid.GetGridObject(UtilsClass.GetMouseWorldPosition());
 
+                        if (gridObject == null) 
+                        { 
+                            Debug.Log("Out of Bounds"); 
+                            return;
+                        }
                         // If the Space has a unit
                         if (gridObject.GetUnitGridCombat() != null)
                         {
