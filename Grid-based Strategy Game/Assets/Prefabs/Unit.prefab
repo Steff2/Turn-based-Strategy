@@ -9,7 +9,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1902766428748543781}
-  - component: {fileID: 9155147634200124085}
   - component: {fileID: 1362871088968671403}
   m_Layer: 0
   m_Name: Unit
@@ -34,20 +33,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &9155147634200124085
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 921349337952499640}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d4e8ba188331d3844ad40473c2436f02, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  team: 0
-  isRangedAttacker: 0
 --- !u!114 &1362871088968671403
 MonoBehaviour:
   m_ObjectHideFlags: 0

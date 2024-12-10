@@ -9,9 +9,9 @@ namespace Utils.HealthSystemCM
     {
 
         public event EventHandler OnHealthChanged;
-        public event EventHandler OnMaxHealthChanged;
-        public event EventHandler OnDamaged;
-        public event EventHandler OnHealed;
+        //public event EventHandler OnMaxHealthChanged;
+        //public event EventHandler OnDamaged;
+        //public event EventHandler OnHealed;
         public event EventHandler OnDeath;
 
         private float maxHealth;
@@ -48,7 +48,7 @@ namespace Utils.HealthSystemCM
             }
 
             OnHealthChanged.Invoke(this, EventArgs.Empty);
-            OnDamaged.Invoke(this, EventArgs.Empty);
+            //OnDamaged.Invoke(this, EventArgs.Empty);
 
             if (health <= 0)
             {
@@ -58,7 +58,7 @@ namespace Utils.HealthSystemCM
 
         private void Die()
         {
-            OnDeath.Invoke(this, EventArgs.Empty);
+            //OnDeath.Invoke(this, EventArgs.Empty);
         }
 
         public bool IsDead()

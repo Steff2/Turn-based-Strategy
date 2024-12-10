@@ -5,8 +5,8 @@ using UnityEngine;
 public class Usable_Bar : MonoBehaviour
 {
     private Outline outline;
-    private GameObject gameObject;
-    private Transform transform;
+    private new GameObject gameObject;
+    private new Transform transform;
     private Transform background;
     private Transform bar;
 

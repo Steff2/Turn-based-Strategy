@@ -403,9 +403,12 @@
 "Assets/Scripts/GameSystems/HealthSystem.cs"
 "Assets/Scripts/GameSystems/HealthSystemComponent.cs"
 "Assets/Scripts/GameSystems/Pathfinding.cs"
+"Assets/Scripts/GameSystems/TilemapManager.cs"
 "Assets/Scripts/GameUtils.cs"
 "Assets/Scripts/HealthBarUI.cs"
-"Assets/Scripts/UnitGridCombat.cs"
+"Assets/Scripts/Units/MeleeUnit.cs"
+"Assets/Scripts/Units/RangeUnit.cs"
+"Assets/Scripts/Units/UnitGridCombat.cs"
 "Assets/Scripts/Usable_Bar.cs"
 -langversion:9.0
 
