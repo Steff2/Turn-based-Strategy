@@ -10,7 +10,6 @@ namespace GridCombat
 {
     public class CombatGridSystem : MonoBehaviour
     {
-        private const int MAXMOVEMENTDISTANCE = 4;
         public enum State
         {
             Idle,
@@ -54,9 +53,6 @@ namespace GridCombat
             grid = GameManager.Instance.GetGrid();
             gridPathfinding = GameManager.Instance.GetPathfinding();
             tilemapManager = GameManager.Instance.GetTileMaps();
-
-            movementTilePositions = new Vector3Int[(MAXMOVEMENTDISTANCE * 2 + 1) * (MAXMOVEMENTDISTANCE * 2 + 1)];
-            movementTileArray = new TileBase[movementTilePositions.Length];
 
             foreach (var unit in unitGridCombatArray)
             {
@@ -107,6 +103,9 @@ namespace GridCombat
                 }
             }
 
+            movementTilePositions = new Vector3Int[(activeUnit.movement * 2 + 1) * (activeUnit.movement * 2 + 1)];
+            movementTileArray = new TileBase[movementTilePositions.Length];
+
             hasAttacked = false;
             hasMoved = false;
         }
@@ -115,8 +114,6 @@ namespace GridCombat
 
             // Get Unit Grid Position X, Y
             grid.GetXY(activeUnit.GetPosition(), out int unitX, out int unitY);
-
-            //Debug.Log("Unit Coords: " + unitX +  ", " + unitY);
 
             // Reset Entire Grid Traversables
             for (int x = 0; x < grid.GetWidth(); x++)
@@ -130,17 +127,10 @@ namespace GridCombat
 
             int i = 0;
             // Mark all eligible tiles in range as traversable
-            for (int x = unitX - MAXMOVEMENTDISTANCE; x <= unitX + MAXMOVEMENTDISTANCE; x++)
+            for (int x = unitX - activeUnit.movement; x <= unitX + activeUnit.movement; x++)
             {
-                //Debug.Log("iteration on X: " + i);
-                //Debug.Log("X: " + x);
-
-
-                for (int y = unitY - MAXMOVEMENTDISTANCE; y <= unitY + MAXMOVEMENTDISTANCE; y++)
+                for (int y = unitY - activeUnit.movement; y <= unitY + activeUnit.movement; y++)
                 {
-                    //Debug.Log("iteration on Y: " + i);
-                    //Debug.Log("Y: " + y);
-
                     if (!gridPathfinding.IsInBoundaries(x, y)) { continue; }
 
                     // Cache the change in movement tiles position for further use
@@ -150,7 +140,7 @@ namespace GridCombat
                     if (!gridPathfinding.IsWalkable(x, y)) { continue; }
 
                     var path = gridPathfinding.GetPathStructure(activeUnit.GetPosition(), grid.GetWorldPosition(x, y));
-                    if (path.vectorPathList == null || path.vectorPathList.Count > MAXMOVEMENTDISTANCE)
+                    if (path.vectorPathList == null || path.vectorPathList.Count > activeUnit.movement)
                     { continue; }
 
                     grid.GetGridObject(x, y).SetTraversable(true);
