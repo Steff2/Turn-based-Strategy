@@ -1,3 +1,4 @@
+using CodeMonkey.MonoBehaviours;
 using CodeMonkey.Utils;
 using System;
 using System.Collections.Generic;
@@ -40,6 +41,9 @@ namespace GridCombat
         private Vector3Int[] movementTilePositions;
         private TileBase[] movementTileArray;
 
+        private CameraFollow camFollow;
+        private float zoom = 50f;
+
         // Start is called before the first frame update
         void Awake()
         {
@@ -48,6 +52,8 @@ namespace GridCombat
         }
         private void Start()
         {
+            camFollow = Camera.main.GetComponent<CameraFollow>();
+
             redTeamList = new List<UnitGridCombat>();
             blueTeamList = new List<UnitGridCombat>();
             grid = GameManager.Instance.GetGrid();
@@ -70,6 +76,8 @@ namespace GridCombat
 
             SelectNextActive(UnitGridCombat.Team.Blue);
             ManageMovement();
+            camFollow.Setup(() => activeUnit.transform.position, () => zoom, true, true);
+
         }
         private void SelectNextActive(UnitGridCombat.Team team)
         {
@@ -105,6 +113,8 @@ namespace GridCombat
 
             movementTilePositions = new Vector3Int[(activeUnit.movement * 2 + 1) * (activeUnit.movement * 2 + 1)];
             movementTileArray = new TileBase[movementTilePositions.Length];
+
+            camFollow.SetCameraFollowPosition(activeUnit.transform.position);
 
             hasAttacked = false;
             hasMoved = false;
