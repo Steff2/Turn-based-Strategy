@@ -28,7 +28,7 @@ namespace CodeMonkey {
         // Instance reference
         public static Assets i {
             get {
-                if (_i == null) _i = Instantiate(Resources.Load<Assets>("CodeMonkeyAssets")); 
+                if (_i == null) _i = Instantiate(Resources.Load<Assets>("Assets")); 
                 return _i; 
             }
         }
