@@ -198,7 +198,6 @@ namespace GridCombat
                             {
                                 state = State.Idle;
                                 hasAttacked = true;
-                                ManageMovement();
                                 TestTurnOver();
                             });
                             break;
