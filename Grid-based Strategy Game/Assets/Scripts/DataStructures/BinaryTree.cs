@@ -171,6 +171,16 @@ public class BinaryTree
         {
             var rightChild = treeNode.rightTreeNode;
             var successor = GetLowestLeaf(rightChild, left);
+
+            if (root == treeNode)
+            {
+                rightChild.parentNode = successor;
+                root = successor;
+                root.rightTreeNode = rightChild;
+                nodeCount--;
+                return;
+            }
+
             rightChild.parentNode = successor;
             parentNode.rightTreeNode = successor;
             nodeCount--;
